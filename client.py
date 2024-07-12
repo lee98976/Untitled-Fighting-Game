@@ -33,7 +33,7 @@ class Client():
         # s.settimeout(0.05)
 
         # Recieve the player name ONLY ONCE (The server should already be up before the client is run.)
-        self.playerName = s.recv(16384)
+        self.playerName = s.recv(32768)
 
         while True:
 

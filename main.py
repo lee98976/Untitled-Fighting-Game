@@ -87,6 +87,7 @@ def takeData():
         player1.parryFrames = a["player1"]["parryFrames"]
         player1.currentFrame = a["player1"]["currentFrame"]
         player1.state = a["player1"]["state"]
+        player1.lastState = a["player1"]["lastState"]
         player1.facingRight = a["player1"]["facingRight"]
         player1.currentImage = a["player1"]["currentImage"]
         player1.x = a["player1"]["x"]
@@ -101,6 +102,7 @@ def takeData():
         player2.parryFrames = a["player2"]["parryFrames"]
         player2.currentFrame = a["player2"]["currentFrame"]
         player2.state = a["player2"]["state"]
+        player2.lastState = a["player2"]["lastState"]
         player2.facingRight = a["player2"]["facingRight"]
         player2.currentImage = a["player2"]["currentImage"]
         player2.x = a["player2"]["x"]
@@ -148,7 +150,7 @@ def attackCollision(attack):
 
 while True:
     # Recieve any player inputs sent in and handle them
-    sendData()
+    takeData()
     
     # Check if the player quit the game
     for event in pygame.event.get():
@@ -181,7 +183,7 @@ while True:
     UIGroup.draw(screen)
 
     # Send back the current game state
-    takeData()
+    sendData()
 
     # Visualize health bar rectangle
     # pygame.draw.rect(screen, (127, 127, 127), healthBar.rect)

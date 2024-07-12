@@ -23,7 +23,7 @@ class Server():
         self.get_queue1 = get_queue1
         self.get_queue2 = get_queue2
         self.mainThread = threading.Thread(target=self.const_update, args=(self.pending, self.send_queue, self.get_queue1, self.get_queue2,))
-        self.mainThread.daemon = True
+        self.mainThread.setDaemon(True)
         self.player1 = False
         self.player2 = False
         self.mainThread.start()
@@ -73,27 +73,30 @@ class Server():
         
             while True:
                 data = conn.recv(16384)
-                data = data.decode()
+                
                 # steps: get data
                 # encode or decode it
                 # send it back: conn.send(item)
 
                 if not pending.empty():
                     pendingData = pending.get()
-                    pendingData = pendingData.encode()
+                    pendingData = pendingData.encode('utf-8')
                     conn.send(pendingData)
 
                 if data:
                     # Take in keystrokes
+                    data = data.decode('utf-8')
+                    data = json.loads(data)
                     if data[0] == "Player1":
                         gq1.put(data)
                     elif data[0] == "Player2":
                         gq2.put(data)
 
                 dataSend = sq.get()
+                dataSend = json.dumps(dataSend)
 
                 if dataSend:
-                    data.send(dataSend)
+                    conn.send(dataSend.encode('utf-8'))
                     
 # Server
 send_queue = queue.Queue()
@@ -134,7 +137,7 @@ pygame.display.set_caption('Untitled Fighting Game!')
 # Background
 bg_img = pygame.image.load("sprites/background_img/bg_pix.png")
 background = Background(bg_img, 1, 250, 250)
-bg_group = pygame.sprite.Group()ddd
+bg_group = pygame.sprite.Group()
 bg_group.add(background)
 
 # Groups
@@ -161,6 +164,19 @@ platform2 = Platform(200, 100, 1000, 20)
 gameMap.add(platform)
 gameMap.add(platform2)
 
+def takeData():
+    global player1
+    global player2
+    if not get_queue1.empty():
+        item = get_queue1.get()
+        if item:
+            player1.setKeyStates(item)
+    
+    if not get_queue2.empty():
+        item = get_queue2.get()
+        if item:
+            player2.setKeyStates(item)
+
 def sendData():
     global send_queue
     dataDictionary = {
@@ -175,6 +191,7 @@ def sendData():
             "parryFrames" : player1.parryFrames,
             "currentFrame" : player1.currentFrame,
             "state" : player1.state,
+            "lastState" : player1.lastState,
             "facingRight" : player1.facingRight,
             "currentImage" : player1.currentImage,
             "x": player1.x,
@@ -192,6 +209,7 @@ def sendData():
             "parryFrames" : player2.parryFrames,
             "currentFrame" : player2.currentFrame,
             "state" : player2.state,
+            "lastState" : player2.lastState,
             "facingRight" : player2.facingRight,
             "currentImage" : player2.currentImage,
             "x": player2.x,
@@ -259,7 +277,10 @@ def attackCollision(attack):
 
 while True:
     # Recieve any player inputs sent in and handle them
-    sendData()
+    # if not get_queue1.empty():
+    #     # print(list(get_queue1.queue)[0][1][pygame.K_w])
+    #     pass
+    takeData()
     
     # Check if the player quit the game
     for event in pygame.event.get():
@@ -292,8 +313,7 @@ while True:
     UIGroup.draw(screen)
 
     # Send back the current game state
-    # takeData()
-    
+    sendData()
 
     # Visualize health bar rectangle
     # pygame.draw.rect(screen, (127, 127, 127), healthBar.rect)
