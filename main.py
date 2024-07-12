@@ -12,6 +12,7 @@ from fightingTypes.swordFighter import SwordFighter
 from map.platform import Platform
 from client import Client
 from UI.healthBar import HealthBar
+from map.imgPlatform import ImgPlatform
 
 send_queue = queue.Queue()
 get_queue = queue.Queue()
@@ -34,6 +35,7 @@ bg_img = pygame.image.load("sprites/background_img/bg_pix.png")
 background = Background(bg_img, 1, 250, 250)
 bg_group = pygame.sprite.Group()
 bg_group.add(background)
+
 
 # Groups
 attacks = pygame.sprite.Group()
@@ -59,10 +61,15 @@ UIGroup.add(healthBar)
 UIGroup.add(healthBar2)
 
 # Platforms
-platform = Platform(200, 275, 1000, 20) 
-platform2 = Platform(200, 100, 1000, 20)
-gameMap.add(platform)
-gameMap.add(platform2)
+# platform = Platform(200, 275, 1000, 20) 
+# platform2 = Platform(200, 100, 1000, 20)
+# gameMap.add(platform)
+# gameMap.add(platform2)
+
+# New Platform
+tub_img = pygame.image.load("sprites/platform_img/tub_stage.png")
+tubPlatform = ImgPlatform(tub_img, 200, 275, 1000, 20)
+gameMap.add(tubPlatform)
 
 def sendData():
     global send_queue
