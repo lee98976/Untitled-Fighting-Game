@@ -61,15 +61,15 @@ UIGroup.add(healthBar)
 UIGroup.add(healthBar2)
 
 # Platforms
-# platform = Platform(200, 275, 1000, 20) 
-# platform2 = Platform(200, 100, 1000, 20)
-# gameMap.add(platform)
-# gameMap.add(platform2)
+platform = Platform(200, 275, 1000, 20) 
+platform2 = Platform(200, 100, 1000, 20)
+gameMap.add(platform)
+gameMap.add(platform2)
 
-# New Platform
-tub_img = pygame.image.load("sprites/platform_img/tub_stage.png")
-tubPlatform = ImgPlatform(tub_img, 200, 275, 1000, 20)
-gameMap.add(tubPlatform)
+# #New Platform
+# tub_img = pygame.image.load("sprites/platform_img/tub_stage.png")
+# tubPlatform = ImgPlatform(tub_img, 200, 275, 1000, 20)
+# gameMap.add(tubPlatform)
 
 def sendData():
     global send_queue
