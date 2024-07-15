@@ -16,6 +16,8 @@ class SwordFighter(pygame.sprite.Sprite):
         # 2. Edit attack functions
         # 3. Edit update frame impact frame
         # 4. Create json file for attack
+
+        # Check if Swordfighter is simulated or not
         self.owned = owned
         self.isServer = isServer
         self.name = name
@@ -41,14 +43,11 @@ class SwordFighter(pygame.sprite.Sprite):
         self.currentImage = 0
         self.image = self.images[self.state][0]
 
-
         # Key Stroke
         self.lastKeyState = []
         self.lastMouseState = []
         self.keyState = []
         self.mouseState = []
-        
-        
 
         # Movement
         self.x = x
@@ -66,7 +65,7 @@ class SwordFighter(pygame.sprite.Sprite):
         # Update
         self.updateSprite()
 
-
+    # Process all the images in the folders, only runs once
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
         animPaths = ["idle", "walk", "drawSword", "block"]
@@ -99,6 +98,8 @@ class SwordFighter(pygame.sprite.Sprite):
             
         # print("All sprites:", images)
         return images, attackImages, frameData
+    
+
 
     def movement(self):
         if pygame.K_w in self.keyState and pygame.K_w in self.keyState != pygame.K_w in self.lastKeyState: # jump TODO: detect if on ground before jump
@@ -175,18 +176,22 @@ class SwordFighter(pygame.sprite.Sprite):
                 self.velocity[0] = 0
 
     def updateFrame(self):
-        # print(self.frameData[self.state]["loop"])
-        # print(self.state + str(self.currentImage + 1))
-
         #Conditions for looping:
         #1. State is not last state OR
         #2. Frame has run to completetion
 
-        if self.lastState != self.state or self.currentFrame >= self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][-1]:
+        changedState = self.lastState != self.state
+        animationFinished = self.currentFrame >= self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][1]
+
+        # Animation changed
+        if changedState or animationFinished:
             self.currentFrame = 0
             self.currentImage = 0
-            if self.currentFrame >= self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][-1] and not self.frameData[self.state]["loop"]:
+            
+            # Reset to idle once an action is finished
+            if animationFinished and not self.frameData[self.state]["loop"]:
                 self.state = "idle"
+        # Animation stays the same
         else:
             if self.currentFrame >= self.frameData[self.state][self.state + str(int(self.currentImage+1))][-1]:
                 self.currentImage += 1
@@ -264,15 +269,7 @@ class SwordFighter(pygame.sprite.Sprite):
         #     if self.keyState[i]:
         #         print(i)
     
-    def updateSprite(self):
-        """
-        Update determines the current animation. When no input has been recieved within a certain 
-        time frame and is grounded, it will go back to idle. Otherwise the frames of movements
-        or attacks will be updated.
-        """
-        
-        #If person is attacking or stuck in endlag, do not run movement.
-
+    def keyFormat(self):
         if self.isServer == False and self.owned:
             temp1 = pygame.key.get_pressed()
             temp2 = pygame.mouse.get_pressed()
@@ -286,32 +283,51 @@ class SwordFighter(pygame.sprite.Sprite):
                     self.mouseState.append(i)
         elif self.isServer == True and self.owned == True:
             pass
-            # Take in queue keystate and previous keyState
-            # This is run in server takeData
-            # if True in self.keyState:
-            #     print("oogabooga")
+    
+    def updateSprite(self):
+        """
+        Update determines the current animation. When no input has been recieved within a certain 
+        time frame and is grounded, it will go back to idle. Otherwise the frames of movements
+        or attacks will be updated.
+        """
+
+        self.keyFormat()
+        
+        #If person is attacking or stuck in endlag, do not run movement.
+
 
         if self.owned:
             self.checkBlock()
+
+            #TODO
             part1 = self.currentFrame < self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][1]
+
+            # Check if player is still attacking
             checkEndLag = self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][0] in [0, 1, 2]
-            if not(part1 and checkEndLag) and self.stunFrames < 0 and self.state != "block":
+            notInStun = self.stunFrames < 0
+            notBlocking = self.state != "block"
+
+            if not(part1 and checkEndLag) and notInStun and notBlocking:
                 attacked = self.attack()
                 if not attacked:
                     self.movement()
 
+        # Calclate velocity
         self.calcVelocity()
         self.updateFrame()
         self.checkHealth()
 
+        # Change varibles
         self.currentFrame += 1
         self.blockHealth += 0.01
         self.stunFrames -= 1
         self.invisFrames -= 1
         self.parryFrames -= 1
+
+        # Visualize collision hitbox
+        # pygame.draw.rect(self.screen, (125, 125, 125), self.rect)
         
-        pygame.draw.rect(self.screen, (125, 125, 125), self.rect)
-        
+        # Set last states
         self.lastState = self.state
         self.lastKeyState = self.keyState
         self.lastMouseState = self.mouseState
