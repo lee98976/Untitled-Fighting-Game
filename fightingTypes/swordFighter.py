@@ -68,7 +68,7 @@ class SwordFighter(pygame.sprite.Sprite):
     # Process all the images in the folders, only runs once
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -99,37 +99,33 @@ class SwordFighter(pygame.sprite.Sprite):
         # print("All sprites:", images)
         return images, attackImages, frameData
     
-
-
+    def action(self):
+        # Priority Order:
+        # Attacks, block, movement, idle
+        if self.attack(): return
+        if self.checkBlock(): return
+        if self.movement(): return
+        self.state = "idle"
+        
     def movement(self):
         if pygame.K_w in self.keyState and pygame.K_w in self.keyState != pygame.K_w in self.lastKeyState: # jump TODO: detect if on ground before jump
             # print(self.onPlatform, self.doubleJump)
-            if self.onPlatform:   
-                self.velocity[1] = 3
-                print("jump")
-            elif self.doubleJump:
-                self.doubleJump = False
-                self.velocity[1] = 5
-        if pygame.K_s in self.keyState: # phase through platforms
+            self.state = "jump"
+        elif pygame.K_s in self.keyState: # phase through platforms
             pass
-        if pygame.K_a in self.keyState: 
+        elif pygame.K_a in self.keyState: 
             self.velocity[0] -= 0.2
             self.velocity[0] = max(self.velocity[0], -2)
             self.facingRight = False
             self.state = "walk"
-        if pygame.K_d in self.keyState:
+        elif pygame.K_d in self.keyState:
             self.velocity[0] += 0.2
             self.velocity[0] = min(self.velocity[0], 2)
             self.facingRight = True
             self.state = "walk"
-
-            if self.isServer == True and self.owned == True:
-                print("walk right")
-            
-        
-        
-        if not(pygame.K_w in self.keyState or pygame.K_a in self.keyState or pygame.K_s in self.keyState or pygame.K_d in self.keyState): # idle animation
-            self.state = "idle"
+        else:
+            return False
+        return True
 
     def checkBlock(self):
         if self.blockHealth > 0:
@@ -140,6 +136,9 @@ class SwordFighter(pygame.sprite.Sprite):
             else:
                 if self.state == "block":
                     self.state = "idle"
+                return False
+            
+            return True
 
     def attack(self):
         if 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState: # Sword slash
@@ -147,9 +146,19 @@ class SwordFighter(pygame.sprite.Sprite):
             self.currentFrame = 0
             self.currentImage = 0
             self.velocity = [0.0, 0.0]
-            return True
-
+        else:
+            return False
         
+        return True
+
+    def jump(self):
+        if self.onPlatform:   
+            self.velocity[1] = 3
+            print("jump")
+        elif self.doubleJump:
+            self.doubleJump = False
+            self.velocity[1] = 5
+            print("douba jump")
 
     def checkHealth(self):
         if self.health <= 0:
@@ -174,6 +183,22 @@ class SwordFighter(pygame.sprite.Sprite):
                 self.velocity[0] += 0.1
             else:
                 self.velocity[0] = 0
+        
+        self.x += self.velocity[0]
+        self.y -= self.velocity[1]
+
+    def drawSword(self):
+        if self.facingRight:
+            offsetX = 60
+            velocityX = 5
+            direction = 1
+        else:
+            offsetX = 10
+            velocityX = -5
+            direction = -1
+
+        summonedAttack = Hitbox("drawSword", self.x + offsetX, self.y + 50, velocityX, 0, 100, 5, [4 * direction, 2], 30, 20, self.name, random.randint(1, 184467440737095516))
+        self.attackGroup.add(summonedAttack)
 
     def updateFrame(self):
         #Conditions for looping:
@@ -193,38 +218,26 @@ class SwordFighter(pygame.sprite.Sprite):
                 self.state = "idle"
         # Animation stays the same
         else:
-            if self.currentFrame >= self.frameData[self.state][self.state + str(int(self.currentImage+1))][-1]:
+            changeToNextImage = self.currentFrame >= self.frameData[self.state][self.state + str(int(self.currentImage + 1))][-1]
+            if changeToNextImage:
                 self.currentImage += 1
                 
-    
-                if self.state in ["drawSword"] and self.frameData[self.state][self.state + str(self.currentImage + 1)][0] == 1:
-                    #Summon Attack
-                    # print("Bro attacked off")
+                # On the change to next image, check if a attack should be made
+                if self.frameData[self.state][self.state + str(self.currentImage + 1)][0] == 1:
+                    # More actions can be added in the future
                     if self.state == "drawSword":
-                        if self.facingRight:
-                            offsetX = 60
-                            velocityX = 5
-                            direction = 1
-                        else:
-                            offsetX = 10
-                            velocityX = -5
-                            direction = -1
-    
-                        summonedAttack = Hitbox("drawSword", self.x + offsetX, self.y + 50, velocityX, 0, 100, 5, [4 * direction, 2], 30, 20, self.name, random.randint(1, 184467440737095516))
-                        self.attackGroup.add(summonedAttack)
-    
-            
+                        self.drawSword()
+                    elif self.state == "jump":
+                        self.jump()
 
-        self.x += self.velocity[0]
-        self.y -= self.velocity[1]
-
-
+        # Set the image based on the direction faced
         if self.facingRight:
             self.image = self.images[self.state][self.currentImage]
         else:
             self.image = self.images[self.state][self.currentImage]
             self.image = pygame.transform.flip(self.image, True, False)
 
+        # Update the mask and the rect
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.mask.get_rect(topleft = (int(self.x), int(self.y)))
 
@@ -291,31 +304,30 @@ class SwordFighter(pygame.sprite.Sprite):
         or attacks will be updated.
         """
 
+        # Format the keystrokes into a desired formate (Only the keystrokes held, not all)
         self.keyFormat()
-        
-        #If person is attacking or stuck in endlag, do not run movement.
-
 
         if self.owned:
             self.checkBlock()
 
-            #TODO
-            part1 = self.currentFrame < self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][1]
-
-            # Check if player is still attacking
+            # Check if player is still in a action
             checkEndLag = self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][0] in [0, 1, 2]
             notInStun = self.stunFrames < 0
             notBlocking = self.state != "block"
 
-            if not(part1 and checkEndLag) and notInStun and notBlocking:
-                attacked = self.attack()
-                if not attacked:
-                    self.movement()
+            if not checkEndLag and notInStun and notBlocking:
+                self.action()
 
         # Calclate velocity
         self.calcVelocity()
+
+        # Update animation
         self.updateFrame()
+
+        # Check if you died
         self.checkHealth()
+
+        print(self.velocity)
 
         # Change varibles
         self.currentFrame += 1
@@ -323,9 +335,6 @@ class SwordFighter(pygame.sprite.Sprite):
         self.stunFrames -= 1
         self.invisFrames -= 1
         self.parryFrames -= 1
-
-        # Visualize collision hitbox
-        # pygame.draw.rect(self.screen, (125, 125, 125), self.rect)
         
         # Set last states
         self.lastState = self.state

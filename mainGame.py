@@ -197,16 +197,15 @@ class MainGame():
 
         if len(collisions) >= 1:
             for i in collisions:
-                if player.rect.bottom < i.rect.top + 10:  # Top collision
+                if player.rect.bottom < i.rect.top + 10:  # Player hit the top
                     player.y = i.rect.top - abs(player.rect.bottom -
                                                 player.rect.top) + 1 # Stap player to the top of the platform
                     player.rect.bottom = i.rect.top + 1
 
                     player.onPlatform = True
                     player.doubleJump = True
-                    player.velocity[1] = 0
                     # print("Player has hit the top of a platform.")
-                elif player.rect.top > i.rect.bottom + 10:  # Bottom collison
+                elif player.rect.top > i.rect.bottom + 10:  # Player hit the bottom
                     player.velocity[1] = 0
                     # print("Player has hit the bottom of a platform.")
                 else:  # Side collision
