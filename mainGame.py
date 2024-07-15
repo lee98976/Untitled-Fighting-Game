@@ -42,14 +42,14 @@ class MainGame():
         # Test Players
         if not self.isServer:
             if currentPlayer == "Player1":
-                self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, True, False, "Player1")
-                self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, False, False, "Player2")
+                self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, True, False, "Player1", facingRight=True)
+                self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, False, False, "Player2", facingRight=False)
             else:
-                self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, False, False, "Player1")
-                self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, True, False, "Player2")
+                self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, False, False, "Player1", facingRight=True)
+                self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, True, False, "Player2", facingRight=False)
         else:
-            self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, True, True, "Player1")
-            self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, True, True, "Player2")
+            self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, True, True, "Player1", facingRight=True)
+            self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, True, True, "Player2", facingRight=False)
 
         self.players.add(self.player1)
         self.players.add(self.player2)
@@ -140,7 +140,6 @@ class MainGame():
             dataDictionary["attacks"] = temp
 
             self.send_queue.put(dataDictionary)
-        
         
     def takeData(self):
         if not self.isServer:

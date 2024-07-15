@@ -8,7 +8,7 @@ from fightingTypes.hitbox import Hitbox
 
 
 class SwordFighter(pygame.sprite.Sprite):
-    def __init__(self, screen, attackGroup, x, y, owned, isServer, name, gq=None):
+    def __init__(self, screen, attackGroup, x, y, owned, isServer, name, facingRight=True):
         pygame.sprite.Sprite.__init__(self)
 
         # How to add a attack:
@@ -21,7 +21,6 @@ class SwordFighter(pygame.sprite.Sprite):
         self.owned = owned
         self.isServer = isServer
         self.name = name
-        self.gq = gq
 
         #Game mechanics
         self.health = 100
@@ -38,7 +37,7 @@ class SwordFighter(pygame.sprite.Sprite):
         self.images, self.attackImages, self.frameData = self.imageProcess()
         self.lastState = "idle"
         self.state = "idle"
-        self.facingRight = True
+        self.facingRight = facingRight
         self.screen = screen
         self.currentImage = 0
         self.image = self.images[self.state][0]
@@ -58,9 +57,9 @@ class SwordFighter(pygame.sprite.Sprite):
 
         # Attacking
         self.attackGroup = attackGroup
-        # self.startUp = 0
-        # self.currentAttack = ""
-        # self.endLag = 0
+        self.debounces = {
+            "drawSword" : 0
+        }
         
         # Update
         self.updateSprite()
@@ -68,7 +67,7 @@ class SwordFighter(pygame.sprite.Sprite):
     # Process all the images in the folders, only runs once
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -141,10 +140,11 @@ class SwordFighter(pygame.sprite.Sprite):
             return True
 
     def attack(self):
-        if 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState: # Sword slash
+        if 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["drawSword"] <= 0: # Sword slash
             self.state = "drawSword"
             self.currentFrame = 0
             self.currentImage = 0
+            self.debounces["drawSword"] = 180
             self.velocity = [0.0, 0.0]
         else:
             return False
@@ -335,6 +335,10 @@ class SwordFighter(pygame.sprite.Sprite):
         self.stunFrames -= 1
         self.invisFrames -= 1
         self.parryFrames -= 1
+
+        for attack in self.debounces.keys():
+            self.debounces[attack] -= 1
+            
         
         # Set last states
         self.lastState = self.state
