@@ -58,7 +58,8 @@ class SwordFighter(pygame.sprite.Sprite):
         # Attacking
         self.attackGroup = attackGroup
         self.debounces = {
-            "drawSword" : 0
+            "drawSword" : 0,
+            "punch1" : 0
         }
         
         # Update
@@ -124,6 +125,10 @@ class SwordFighter(pygame.sprite.Sprite):
             self.state = "walk"
         else:
             return False
+        
+        if self.onPlatform == False and self.state == "walk":
+            self.state = "freeFall"
+
         return True
 
     def checkBlock(self):
@@ -140,11 +145,17 @@ class SwordFighter(pygame.sprite.Sprite):
             return True
 
     def attack(self):
-        if 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["drawSword"] <= 0: # Sword slash
+        if pygame.K_1 in self.keyState and pygame.K_1 in self.keyState != pygame.K_1 in self.keyState and self.debounces["drawSword"] <= 0: # Sword slash
             self.state = "drawSword"
             self.currentFrame = 0
             self.currentImage = 0
             self.debounces["drawSword"] = 180
+            self.velocity = [0.0, 0.0]
+        elif 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["drawSword"] <= 0:
+            self.state = "punch1"
+            self.currentFrame = 0
+            self.currentImage = 0
+            self.debounces["punch1"] = 5
             self.velocity = [0.0, 0.0]
         else:
             return False
@@ -176,13 +187,14 @@ class SwordFighter(pygame.sprite.Sprite):
         if not self.onPlatform:
             self.velocity[1] -= 0.1
 
-        if not(pygame.K_a in self.keyState or pygame.K_d in self.keyState) or self.state == "block":
-            if self.velocity[0] > 0.1:
-                self.velocity[0] -= 0.1
-            elif self.velocity[0] < -0.1:
-                self.velocity[0] += 0.1
-            else:
-                self.velocity[0] = 0
+        if self.stunFrames <= 0:
+            if not(pygame.K_a in self.keyState or pygame.K_d in self.keyState) or self.state == "block":
+                if self.velocity[0] > 0.1:
+                    self.velocity[0] -= 0.1
+                elif self.velocity[0] < -0.1:
+                    self.velocity[0] += 0.1
+                else:
+                    self.velocity[0] = 0
         
         self.x += self.velocity[0]
         self.y -= self.velocity[1]
@@ -198,6 +210,19 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = -1
 
         summonedAttack = Hitbox("drawSword", self.x + offsetX, self.y + 50, velocityX, 0, 100, 5, [4 * direction, 2], 30, 20, self.name, random.randint(1, 184467440737095516))
+        self.attackGroup.add(summonedAttack)
+
+    def punch1(self):
+        if self.facingRight:
+            offsetX = 60
+            direction = 1
+            velocityX = 0.01
+        else:
+            offsetX = 10
+            direction = -1
+            velocityX = -0.01
+
+        summonedAttack = Hitbox("punch1", self.x + offsetX, self.y + 50, velocityX, 0, 2, 2, [direction, 0.1], 10, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def updateFrame(self):
@@ -229,6 +254,8 @@ class SwordFighter(pygame.sprite.Sprite):
                         self.drawSword()
                     elif self.state == "jump":
                         self.jump()
+                    elif self.state == "punch1":
+                        self.punch1()
 
         # Set the image based on the direction faced
         if self.facingRight:

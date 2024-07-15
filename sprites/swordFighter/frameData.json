@@ -38,5 +38,13 @@
         "walk4" : [3, 18],
         "walk5" : [3, 22],
         "loop" : true
+    },
+    "punch1" : {
+        "punch11" : [0, 2],
+        "punch12" : [0, 10],
+        "punch13" : [1, 12],
+        "punch14" : [2, 15],
+        "punch15" : [2, 20],
+        "loop" : false
     }
 }
