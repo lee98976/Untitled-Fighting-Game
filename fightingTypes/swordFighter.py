@@ -8,14 +8,17 @@ from fightingTypes.hitbox import Hitbox
 
 
 class SwordFighter(pygame.sprite.Sprite):
+
     def __init__(self, screen, attackGroup, x, y, owned, isServer, name, facingRight=True):
         pygame.sprite.Sprite.__init__(self)
 
         # How to add a attack:
         # 1. Edit anim paths
-        # 2. Edit attack functions
-        # 3. Edit update frame impact frame
-        # 4. Create json file for attack
+        # 2. Create attack functions
+        # 3. Edit updateFrame impact frame
+        # 4. Add sprites
+        # 5. Change hitboxes
+        # 6. Edit json file for attack
 
         # Check if Swordfighter is simulated or not
         self.owned = owned
@@ -59,16 +62,16 @@ class SwordFighter(pygame.sprite.Sprite):
         self.attackGroup = attackGroup
         self.debounces = {
             "drawSword" : 0,
-            "punch1" : 0
+            "punch1" : 0,
+            "punchBarrage" : 0
         }
         
         # Update
         self.updateSprite()
 
-    # Process all the images in the folders, only runs once
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -151,6 +154,13 @@ class SwordFighter(pygame.sprite.Sprite):
             self.currentImage = 0
             self.debounces["drawSword"] = 180
             self.velocity = [0.0, 0.0]
+        elif pygame.K_2 in self.keyState and pygame.K_2 in self.keyState != pygame.K_2 in self.keyState and self.debounces["punchBarrage"] <= 0:
+            self.state = "punchBarrage"
+            self.currentFrame = 0
+            self.currentImage = 0
+            self.debounces["punchBarrage"] = 180
+            if self.facingRight: self.velocity = [1.0, 0.0]
+            else: self.velocity = [-1.0, 0.0]
         elif 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["drawSword"] <= 0:
             self.state = "punch1"
             self.currentFrame = 0
@@ -173,11 +183,13 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def checkHealth(self):
         if self.health <= 0:
-            print("Player has died!")
-        elif self.health > self.maxHealth:
-            self.health = self.maxHealth
-        if self.blockHealth > self.maxBlockHealth:
-            self.blockHealth = self.maxBlockHealth
+            return False
+        else:
+            if self.health > self.maxHealth:
+                self.health = self.maxHealth
+            if self.blockHealth > self.maxBlockHealth:
+                self.blockHealth = self.maxBlockHealth
+            return True
 
     def calcVelocity(self):
         if self.velocity[0] > 2 or self.velocity[0] < -2:
@@ -225,6 +237,21 @@ class SwordFighter(pygame.sprite.Sprite):
         summonedAttack = Hitbox("punch1", self.x + offsetX, self.y + 50, velocityX, 0, 2, 2, [direction, 0.1], 10, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
+    def punchBarrage(self, lastAttack):
+        if self.facingRight:
+            offsetX = 60
+            direction = 1
+            velocityX = 0.01
+        else:
+            offsetX = 10
+            direction = -1
+            velocityX = -0.01
+
+        if lastAttack: knockBackX = 5
+        else: knockBackX = 0.1
+        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, 0.05], 10, 0, self.name, random.randint(1, 184467440737095516))
+        self.attackGroup.add(summonedAttack)
+
     def updateFrame(self):
         #Conditions for looping:
         #1. State is not last state OR
@@ -256,6 +283,11 @@ class SwordFighter(pygame.sprite.Sprite):
                         self.jump()
                     elif self.state == "punch1":
                         self.punch1()
+                    elif self.state == "punchBarrage":
+                        if self.image == 11:
+                            self.punchBarrage(True)
+                        else:
+                            self.punchBarrage(False)
 
         # Set the image based on the direction faced
         if self.facingRight:
@@ -351,8 +383,7 @@ class SwordFighter(pygame.sprite.Sprite):
         # Update animation
         self.updateFrame()
 
-        # Check if you died
-        self.checkHealth()
+        # Death check is in mainGame
 
         print(self.velocity)
 

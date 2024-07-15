@@ -224,6 +224,16 @@ class MainGame():
                             attack.invisFrames)
                     attack.hitPlayers.append(player)
 
+    def checkWin(self):
+        # Check if you died
+        alive1 = self.player1.checkHealth()
+        alive2 = self.player2.checkHealth()
+
+        if alive1 and alive2: return "None"
+        elif not alive1 and alive2: return "Player2"
+        elif alive1 and not alive2: return "Player1"
+        elif not alive1 and not alive2: return "Tie"
+
     def mainGameLoop(self):
         while True:
             # Recieve any player inputs sent in and handle them
@@ -259,8 +269,23 @@ class MainGame():
             self.attacks.draw(self.screen)
             self.UIGroup.draw(self.screen)
 
+
             # Send back the current game state
             self.sendData()
+
+            hasWon = self.checkWin()
+            
+            if hasWon != "None":
+                if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
+                elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
+                elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
+                
+                background = Background(bg_img, 1, 250, 250)
+                self.bg_group.add(background)
+
+                time.sleep(3)
+
+                return
 
             # Visualize health bar rectangle
             # pygame.draw.rect(screen, (127, 127, 127), healthBar.rect)

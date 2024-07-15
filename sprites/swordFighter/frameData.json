@@ -8,7 +8,6 @@
         "drawSword5" : [2, 40],
         "loop" : false
     },
-
     "block" : {
         "block1" : [3, 10],
         "block2" : [3, 20],
@@ -45,6 +44,22 @@
         "punch13" : [1, 12],
         "punch14" : [2, 15],
         "punch15" : [2, 20],
+        "loop" : false
+    },
+    "punchBarrage" : {
+        "punchBarrage1" : [0, 0],
+        "punchBarrage2" : [0, 30],
+        "punchBarrage3" : [1, 60],
+        "punchBarrage4" : [1, 66],
+        "punchBarrage5" : [1, 69],
+        "punchBarrage6" : [1, 72],
+        "punchBarrage7" : [1, 75],
+        "punchBarrage8" : [1, 78],
+        "punchBarrage9" : [1, 81],
+        "punchBarrage10" : [1, 84],
+        "punchBarrage11" : [1, 87],
+        "punchBarrage12" : [1, 90],
+        "punchBarrage13" : [2, 100],
         "loop" : false
     }
 }
