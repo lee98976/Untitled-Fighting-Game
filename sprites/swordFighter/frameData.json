@@ -1,5 +1,5 @@
 { 
-    "COMMENT" : "The first number of the list represents start-up (0), attack-frame (1), end-lag frames (2)",
+    "COMMENT" : "The first number of the list represents start-up (0), attack-frame (1), end-lag frames (2), none (3), otherAction (4)",
     "drawSword" : {
         "drawSword1" : [0, 7],
         "drawSword2" : [0, 14],
@@ -8,13 +8,27 @@
         "drawSword5" : [2, 40],
         "loop" : false
     },
+
     "block" : {
         "block1" : [3, 10],
-        "block2" : [3, 20]
+        "block2" : [3, 20],
+        "loop" : true
     },
     "idle" : {
         "idle1" : [3, 45],
         "idle2" : [3, 60],
+        "loop" : true
+    },
+    "jump" : {
+        "jump1" : [0, 6],
+        "jump2" : [0, 12],
+        "jump3" : [4, 40],
+        "jump4" : [3, 50],
+        "loop" : false
+    },
+    "freeFall" : {
+        "freeFall1" : [3, 10],
+        "freeFall2" : [3, 20],
         "loop" : true
     },
     "walk" : {

@@ -1,10 +1,14 @@
 import json
 import os
 import random
-
+import logging
 import pygame
 
 from fightingTypes.hitbox import Hitbox
+
+logging.basicConfig(format='%(asctime)s,%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s',
+    datefmt='%Y-%m-%d:%H:%M:%S',
+    level=logging.DEBUG)
 
 
 class SwordFighter(pygame.sprite.Sprite):
@@ -16,6 +20,7 @@ class SwordFighter(pygame.sprite.Sprite):
         # 2. Edit attack functions
         # 3. Edit update frame impact frame
         # 4. Create json file for attack
+        self.logger = logging.getLogger(__name__)
         self.owned = owned
         self.isServer = isServer
         self.name = name
@@ -69,7 +74,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "freeFall"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -101,39 +106,35 @@ class SwordFighter(pygame.sprite.Sprite):
         return images, attackImages, frameData
 
     def movement(self):
-        if pygame.K_w in self.keyState and pygame.K_w in self.keyState != pygame.K_w in self.lastKeyState: # jump TODO: detect if on ground before jump
+        if not(pygame.K_w in self.keyState or pygame.K_a in self.keyState or pygame.K_s in self.keyState or pygame.K_d in self.keyState) and self.frameData[self.state]["loop"]: # idle animation
+            self.state = "idle"
+        if pygame.K_w in self.keyState and not pygame.K_w in self.lastKeyState and (self.onPlatform or self.doubleJump): # jump TODO: detect if on ground before jump
             # print(self.onPlatform, self.doubleJump)
-            if self.onPlatform:   
-                self.velocity[1] = 3
-                print("jump")
-            elif self.doubleJump:
-                self.doubleJump = False
-                self.velocity[1] = 5
+            self.state = "jump" 
+            self.velocity = [0, 0]
+        if not self.onPlatform and self.state != "jump":
+            self.state = "freeFall"
+            if self.owned == True:
+                print("reset to freefall")
         if pygame.K_s in self.keyState: # phase through platforms
             pass
         if pygame.K_a in self.keyState: 
             self.velocity[0] -= 0.2
             self.velocity[0] = max(self.velocity[0], -2)
             self.facingRight = False
-            self.state = "walk"
+            if not(self.state == "jump" or self.state == "freeFall"):
+                self.state = "walk"
         if pygame.K_d in self.keyState:
             self.velocity[0] += 0.2
             self.velocity[0] = min(self.velocity[0], 2)
             self.facingRight = True
-            self.state = "walk"
-
-            if self.isServer == True and self.owned == True:
-                print("walk right")
-            
-        
-        
-        if not(pygame.K_w in self.keyState or pygame.K_a in self.keyState or pygame.K_s in self.keyState or pygame.K_d in self.keyState): # idle animation
-            self.state = "idle"
+            if not(self.state == "jump" or self.state == "freeFall"):
+                self.state = "walk"
 
     def checkBlock(self):
         if self.blockHealth > 0:
             if pygame.K_SPACE in self.keyState: # block/parry
-                if pygame.K_SPACE in self.keyState != pygame.K_SPACE in self.lastKeyState:
+                if pygame.K_SPACE in self.keyState == True and pygame.K_SPACE in self.lastKeyState == False:
                     self.parryFrames = 20
                 self.state = "block"
             else:
@@ -141,14 +142,12 @@ class SwordFighter(pygame.sprite.Sprite):
                     self.state = "idle"
 
     def attack(self):
-        if 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState: # Sword slash
+        if 0 in self.mouseState and not 0 in self.lastMouseState: # Sword slash
             self.state = "drawSword"
             self.currentFrame = 0
             self.currentImage = 0
             self.velocity = [0.0, 0.0]
-            return True
-
-        
+            return True        
 
     def checkHealth(self):
         if self.health <= 0:
@@ -190,11 +189,9 @@ class SwordFighter(pygame.sprite.Sprite):
         else:
             if self.currentFrame >= self.frameData[self.state][self.state + str(int(self.currentImage+1))][-1]:
                 self.currentImage += 1
-                
-    
-                if self.state in ["drawSword"] and self.frameData[self.state][self.state + str(self.currentImage + 1)][0] == 1:
-                    #Summon Attack
-                    # print("Bro attacked off")
+            
+                if self.frameData[self.state][self.state + str(self.currentImage + 1)][0] in [1, 4]:
+                    # Summon Attack
                     if self.state == "drawSword":
                         if self.facingRight:
                             offsetX = 60
@@ -207,6 +204,14 @@ class SwordFighter(pygame.sprite.Sprite):
     
                         summonedAttack = Hitbox("drawSword", self.x + offsetX, self.y + 50, velocityX, 0, 100, 5, [4 * direction, 2], 30, 20, self.name, random.randint(1, 184467440737095516))
                         self.attackGroup.add(summonedAttack)
+                    else:
+                        if self.state == "jump":
+                            if self.onPlatform: 
+                                self.velocity[1] = 3
+                            elif self.doubleJump:
+                                self.doubleJump = False
+                                self.velocity[1] = 5
+                            
     
             
 
@@ -288,14 +293,12 @@ class SwordFighter(pygame.sprite.Sprite):
             pass
             # Take in queue keystate and previous keyState
             # This is run in server takeData
-            # if True in self.keyState:
-            #     print("oogabooga")
 
         if self.owned:
             self.checkBlock()
             part1 = self.currentFrame < self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][1]
             checkEndLag = self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][0] in [0, 1, 2]
-            if not(part1 and checkEndLag) and self.stunFrames < 0 and self.state != "block":
+            if not part1 and not checkEndLag and self.stunFrames < 0 and not self.state in ["block"]:
                 attacked = self.attack()
                 if not attacked:
                     self.movement()

@@ -45,6 +45,8 @@ class Client():
             file_info = sendQueue.get()
 
             if file_info:
+                if self.playerName == "Player1":
+                    print(file_info)
                 tempJson = json.dumps(file_info)
                 tempJson = tempJson.encode("utf-8")
                 s.send(tempJson) 
