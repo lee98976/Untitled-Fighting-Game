@@ -60,11 +60,6 @@ class MainGame():
         self.UIGroup.add(healthBar)
         self.UIGroup.add(healthBar2)
 
-        # #New Platform
-        # tub_img = pygame.image.load("sprites/platform_img/tub_stage.png")
-        # tubPlatform = ImgPlatform(tub_img, 5, 200, 200)
-        # self.gameMap.add(tubPlatform)
-
         # Platforms
         platform = Platform(200, 275, 1000, 20) 
         platform2 = Platform(200, 100, 1000, 20)
@@ -72,6 +67,11 @@ class MainGame():
         self.gameMap.add(platform2)
 
         self.mainGameLoop()
+
+    # #New Platform
+    # tub_img = pygame.image.load("sprites/platform_img/tub_stage.png")
+    # tubPlatform = ImgPlatform(tub_img, 200, 275, 1000, 20)
+    # gameMap.add(tubPlatform)
 
     def sendData(self):
         if not self.isServer:
