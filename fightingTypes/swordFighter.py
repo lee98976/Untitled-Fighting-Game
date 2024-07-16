@@ -279,7 +279,7 @@ class SwordFighter(pygame.sprite.Sprite):
             velocityX = -0.01
         
         self.velocity = [0.0, 12.0]
-        summonedAttack = Hitbox("uppercut", self.x + offsetX, self.y + 50, velocityX, -5.0, 30, 15, [0, 12], 10, 0, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("uppercut", self.x + offsetX, self.y + 50, velocityX, -5.0, 30, 15, [0, 12], 30, 10, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def updateFrame(self):

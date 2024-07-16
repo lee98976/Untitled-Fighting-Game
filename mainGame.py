@@ -233,13 +233,11 @@ class MainGame():
                 if player.name != attack.owner and not (player.name in attack.hitPlayers):
                     if attack.name == "uppercut":            
                         if attack.owner == "Player1":
-                            knockbackX = max(attack.knockback[0] * self.player1.weight / 100 * (self.player1.maxHealth-self.player1.health) / 20, 150)
-                            knockbackY = max(attack.knockback[1] * self.player1.weight / 100 * (self.player1.maxHealth-self.player1.health) / 20, 150)
-                            self.player1.knockback = [knockbackX, knockbackY]     
+                            player.hit(0, attack.knockback, 20,
+                            20)
                         elif attack.owner == "Player2":
-                            knockbackX = max(attack.knockback[0] * self.player2.weight / 100 * (self.player2.maxHealth-self.player2.health) / 20, 150)
-                            knockbackY = max(attack.knockback[1] * self.player2.weight / 100 * (self.player2.maxHealth-self.player2.health) / 20, 150)
-                            self.player2.knockback = [knockbackX, knockbackY]
+                            player.hit(0, attack.knockback, 20,
+                            20)
                     player.hit(attack.damage, attack.knockback, attack.stunFrames,
                             attack.invisFrames)
                     attack.hitPlayers.append(player.name)
