@@ -5,11 +5,12 @@ import random
 import pygame
 
 from fightingTypes.hitbox import Hitbox
+from backgrounds.particle import Particle
 
 
 class SwordFighter(pygame.sprite.Sprite):
 
-    def __init__(self, screen, attackGroup, x, y, owned, isServer, name, facingRight=True):
+    def __init__(self, screen, attackGroup, particleGroup, x, y, owned, isServer, name, facingRight=True):
         pygame.sprite.Sprite.__init__(self)
 
         # How to add a attack:
@@ -44,6 +45,7 @@ class SwordFighter(pygame.sprite.Sprite):
         self.screen = screen
         self.currentImage = 0
         self.image = self.images[self.state][0]
+        self.particleGroup = particleGroup
 
         # Key Stroke
         self.lastKeyState = []
@@ -342,13 +344,15 @@ class SwordFighter(pygame.sprite.Sprite):
                 self.velocity = [knockbackX, knockbackY]
                 self.stunFrames = stunFrames
                 self.invisFrames = invisFrames
-                self.state = "idle" # TODO: add hit animation
+                self.state = "stun"
             else:
                 if self.parryFrames > 0:
                     print("Opponent parried!")
                     self.stunFrames = 0
                     self.parryFrames = 15
                     self.blockHealth += 0.2
+
+                    #TODO parry effect
                 else:
                     print("Opponent blocked.")
                     self.health -= int(damage / 4)
@@ -360,6 +364,10 @@ class SwordFighter(pygame.sprite.Sprite):
                         self.invisFrames = 0
                         self.blockHealth = -5
                         self.state = "idle" 
+
+                        particle = pygame.image.load("sprites/background_img/P1Indicator.png")
+                        self.particleGroup.add(Particle(particle, self.x, self.y, 0, 0, 120, random.randint(1, 2039129493)))
+
         else:
             print("Player is still invicible.")
     

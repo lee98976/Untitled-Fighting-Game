@@ -37,6 +37,7 @@ class MainGame():
 
         # BG group is for images
         self.bg_group = pygame.sprite.Group()
+        self.particle_group = pygame.sprite.Group()
         self.win_group = pygame.sprite.Group()
 
         # Background
@@ -47,17 +48,24 @@ class MainGame():
         # Test Players
         if not self.isServer:
             if currentPlayer == "Player1":
-                self.player1 = SwordFighter(self.screen, self.attacks, 100, 0, True, False, "Player1", facingRight=True)
-                self.player2 = SwordFighter(self.screen, self.attacks, 200, 0, False, False, "Player2", facingRight=False)
+                self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, True, False, "Player1", facingRight=True)
+                self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 200, 0, False, False, "Player2", facingRight=False)
             else:
-                self.player1 = SwordFighter(self.screen, self.attacks, 100, 0, False, False, "Player1", facingRight=True)
-                self.player2 = SwordFighter(self.screen, self.attacks, 200, 0, True, False, "Player2", facingRight=False)
+                self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, False, False, "Player1", facingRight=True)
+                self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 200, 0, True, False, "Player2", facingRight=False)
         else:
-            self.player1 = SwordFighter(self.screen, self.attacks, 100, 0, True, True, "Player1", facingRight=True)
-            self.player2 = SwordFighter(self.screen, self.attacks, 200, 0, True, True, "Player2", facingRight=False)
+            self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, True, True, "Player1", facingRight=True)
+            self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 200, 0, True, True, "Player2", facingRight=False)
 
         self.players.add(self.player1)
         self.players.add(self.player2)
+
+        P1Indicator = pygame.image.load("sprites/background_img/P1Indicator.png")
+        P2Indicator = pygame.image.load("sprites/background_img/P2Indicator.png")
+        self.P1Indicator = Background(P1Indicator, 3, self.player1.x, self.player1.y, playerIndicator=True)
+        self.P2Indicator = Background(P2Indicator, 3, self.player2.x, self.player2.y, playerIndicator=True)
+        self.bg_group.add(self.P1Indicator)
+        self.bg_group.add(self.P2Indicator)
 
         #UI (Non-collidable)
         healthBar = HealthBar(self.player1, 10, 10, flipped=False)
@@ -263,6 +271,9 @@ class MainGame():
             pygame.display.update()
 
             # Update all changing sprites and run updateSprite()
+            self.P1Indicator.updateSprite(self.player1.x + 40, self.player1.y + 10)
+            self.P2Indicator.updateSprite(self.player2.x + 40, self.player2.y + 10)
+            
             for player in self.players:
                 player.updateSprite()
                 self.mapCollision(player)
