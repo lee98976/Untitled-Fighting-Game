@@ -233,10 +233,10 @@ class MainGame():
                 if player.name != attack.owner and not (player.name in attack.hitPlayers):
                     if attack.name == "uppercut":            
                         if attack.owner == "Player1":
-                            player.hit(0, attack.knockback, 20,
+                            self.player1.hit(0, attack.knockback, 20,
                             20)
                         elif attack.owner == "Player2":
-                            player.hit(0, attack.knockback, 20,
+                            self.player2.hit(0, attack.knockback, 20,
                             20)
                     player.hit(attack.damage, attack.knockback, attack.stunFrames,
                             attack.invisFrames)
