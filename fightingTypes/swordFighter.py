@@ -71,7 +71,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -189,6 +189,9 @@ class SwordFighter(pygame.sprite.Sprite):
     def checkHealth(self):
         self.checkFall()
         if self.health <= 0:
+            self.state = "death"
+            self.stunFrames = 1000000
+            self.invisFrames = 1000000
             return False
         else:
             if self.health > self.maxHealth:

@@ -13,6 +13,11 @@
         "block2" : [3, 20],
         "loop" : true
     },
+    "death" : {
+        "death1" : [3, 10],
+        "death2" : [3, 20],
+        "loop" : true
+    },
     "idle" : {
         "idle1" : [3, 45],
         "idle2" : [3, 60],
