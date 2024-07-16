@@ -10,7 +10,6 @@ class HealthBar(pygame.sprite.Sprite):
         self.owner = owner
         self.flipped = flipped
         self.rect.topleft = (x, y)
-        print(self.rect.top, self.rect.bottom, self.rect.right, self.rect.left)
 
     def updateSprite(self, maxHealth, health):
         number =  int(maxHealth - health) // int(maxHealth/15) + 1

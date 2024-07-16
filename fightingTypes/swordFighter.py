@@ -137,8 +137,9 @@ class SwordFighter(pygame.sprite.Sprite):
     def checkBlock(self):
         if self.blockHealth > 0:
             if pygame.K_SPACE in self.keyState: # block/parry
-                if pygame.K_SPACE in self.keyState != pygame.K_SPACE in self.lastKeyState:
+                if not pygame.K_SPACE in self.lastKeyState:
                     self.parryFrames = 20
+                    print("refresh")
                 self.state = "block"
             else:
                 if self.state == "block":
@@ -174,11 +175,11 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def jump(self):
         if self.onPlatform:   
-            self.velocity[1] = 3
+            self.velocity[1] = 5
             print("jump")
         elif self.doubleJump:
             self.doubleJump = False
-            self.velocity[1] = 5
+            self.velocity[1] = 7
             print("douba jump")
 
     def checkHealth(self):
@@ -247,9 +248,11 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = -1
             velocityX = -0.01
 
-        if lastAttack: knockBackX = 5
+        if lastAttack:
+            knockBackX = 7
+            print("FINAL HIT")
         else: knockBackX = 0.1
-        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, 0.05], 10, 0, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, 0.05], 20, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def updateFrame(self):
@@ -279,12 +282,13 @@ class SwordFighter(pygame.sprite.Sprite):
                     # More actions can be added in the future
                     if self.state == "drawSword":
                         self.drawSword()
+                        print("attacked")
                     elif self.state == "jump":
                         self.jump()
                     elif self.state == "punch1":
                         self.punch1()
                     elif self.state == "punchBarrage":
-                        if self.image == 11:
+                        if self.currentImage == 11:
                             self.punchBarrage(True)
                         else:
                             self.punchBarrage(False)
@@ -315,8 +319,8 @@ class SwordFighter(pygame.sprite.Sprite):
                 if self.parryFrames > 0:
                     print("Opponent parried!")
                     self.stunFrames = 0
-                    self.invisFrames = 10
-                    self.blockHealth += 1
+                    self.parryFrames = 10
+                    self.blockHealth += 0.2
                 else:
                     print("Opponent blocked.")
                     self.health -= int(damage / 4)
@@ -385,8 +389,6 @@ class SwordFighter(pygame.sprite.Sprite):
 
         # Death check is in mainGame
 
-        print(self.velocity)
-
         # Change varibles
         self.currentFrame += 1
         self.blockHealth += 0.01
@@ -397,7 +399,6 @@ class SwordFighter(pygame.sprite.Sprite):
         for attack in self.debounces.keys():
             self.debounces[attack] -= 1
             
-        
         # Set last states
         self.lastState = self.state
         self.lastKeyState = self.keyState

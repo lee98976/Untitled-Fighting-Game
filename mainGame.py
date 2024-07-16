@@ -6,6 +6,7 @@ import time
 import pygame
 from pygame.locals import QUIT
 
+from UI.blockBar import BlockBar
 from backgrounds.background import Background
 from fightingTypes.hitbox import Hitbox
 from fightingTypes.swordFighter import SwordFighter
@@ -59,6 +60,11 @@ class MainGame():
         healthBar2 = HealthBar(self.player2, 300, 10, flipped=True)
         self.UIGroup.add(healthBar)
         self.UIGroup.add(healthBar2)
+
+        blockBar = BlockBar(self.player1, self.player1.x, self.player1.y, False)
+        blockBar2 = BlockBar(self.player2, self.player2.x, self.player2.y, False)
+        self.UIGroup.add(blockBar)
+        self.UIGroup.add(blockBar2)
 
         # Platforms
         platform = Platform(200, 275, 1000, 20) 
@@ -219,10 +225,11 @@ class MainGame():
         # Check if there is collisions
         if len(collisions) >= 1:
             for player in collisions:
-                if player.name != attack.owner and player not in attack.hitPlayers:
+                if player.name != attack.owner and not (player.name in attack.hitPlayers):
+                    print("hit")
                     player.hit(attack.damage, attack.knockback, attack.stunFrames,
                             attack.invisFrames)
-                    attack.hitPlayers.append(player)
+                    attack.hitPlayers.append(player.name)
 
     def checkWin(self):
         # Check if you died
@@ -259,33 +266,39 @@ class MainGame():
                 attack.updateSprite()
                 self.attackCollision(attack)
 
+            tempUIGroup = pygame.sprite.Group()
             for item in self.UIGroup:
                 if isinstance(item, HealthBar):
                     item.updateSprite(item.owner.maxHealth, item.owner.health)
-            
+                    tempUIGroup.add(item)
+                elif isinstance(item, BlockBar):
+                    if item.owner.state == "block":
+                        item.updateSprite(item.owner.maxBlockHealth, item.owner.blockHealth, item.owner.x, item.owner.y)
+                        tempUIGroup.add(item)
             # Draw
             self.players.draw(self.screen)
             self.gameMap.draw(self.screen)
             self.attacks.draw(self.screen)
-            self.UIGroup.draw(self.screen)
+            tempUIGroup.draw(self.screen)
 
 
             # Send back the current game state
             self.sendData()
 
-            hasWon = self.checkWin()
+            #TODO: Fix win
+            # hasWon = self.checkWin()
             
-            if hasWon != "None":
-                if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
-                elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
-                elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
+            # if hasWon != "None":
+            #     if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
+            #     elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
+            #     elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
                 
-                background = Background(bg_img, 1, 250, 250)
-                self.bg_group.add(background)
+            #     background = Background(bg_img, 1, 250, 250)
+            #     self.bg_group.add(background)
 
-                time.sleep(3)
+            #     time.sleep(3)
 
-                return
+            #     return
 
             # Visualize health bar rectangle
             # pygame.draw.rect(screen, (127, 127, 127), healthBar.rect)

@@ -19,10 +19,10 @@
         "loop" : true
     },
     "jump" : {
-        "jump1" : [0, 6],
-        "jump2" : [0, 12],
-        "jump3" : [1, 40],
-        "jump4" : [3, 50],
+        "jump1" : [0, 3],
+        "jump2" : [0, 6],
+        "jump3" : [1, 20],
+        "jump4" : [3, 25],
         "loop" : false
     },
     "freeFall" : {
