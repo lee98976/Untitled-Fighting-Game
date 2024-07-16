@@ -138,7 +138,7 @@ class SwordFighter(pygame.sprite.Sprite):
         if self.blockHealth > 0:
             if pygame.K_SPACE in self.keyState: # block/parry
                 if not pygame.K_SPACE in self.lastKeyState:
-                    self.parryFrames = 20
+                    self.parryFrames = 50
                     print("refresh")
                 self.state = "block"
             else:
@@ -318,7 +318,7 @@ class SwordFighter(pygame.sprite.Sprite):
                 if self.parryFrames > 0:
                     print("Opponent parried!")
                     self.stunFrames = 0
-                    self.parryFrames = 10
+                    self.parryFrames = 15
                     self.blockHealth += 0.2
                 else:
                     print("Opponent blocked.")
