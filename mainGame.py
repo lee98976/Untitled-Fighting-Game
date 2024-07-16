@@ -280,12 +280,12 @@ class MainGame():
             hasWon = self.checkWin()
             
             if hasWon != "None":
-                print(hasWon)
                 if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
                 elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
                 elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
                 
-                background = Background(bg_img, 6, 250, 250)
+                background = Background(bg_img, 6, 250, 100)
+                self.win_group.add(Platform(250, 100, background.rect.width, background.rect.height-100))
                 self.win_group.add(background)
 
             # Refill the screen to cover old sprites
