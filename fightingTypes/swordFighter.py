@@ -344,7 +344,7 @@ class SwordFighter(pygame.sprite.Sprite):
                 self.velocity = [knockbackX, knockbackY]
                 self.stunFrames = stunFrames
                 self.invisFrames = invisFrames
-                self.state = "stun"
+                self.state = "idle"
             else:
                 if self.parryFrames > 0:
                     print("Opponent parried!")

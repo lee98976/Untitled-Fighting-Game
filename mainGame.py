@@ -308,6 +308,7 @@ class MainGame():
             self.screen.fill((30, 30, 30))
             self.bg_group.draw(self.screen)
             self.win_group.draw(self.screen)
+            self.particle_group.draw(self.screen)
 
             # Draw
             self.players.draw(self.screen)
