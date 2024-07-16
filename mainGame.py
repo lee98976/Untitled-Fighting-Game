@@ -273,6 +273,9 @@ class MainGame():
             # Update all changing sprites and run updateSprite()
             self.P1Indicator.updateSprite(self.player1.x + 40, self.player1.y + 10)
             self.P2Indicator.updateSprite(self.player2.x + 40, self.player2.y + 10)
+
+            for particle in self.particle_group:
+                particle.updateSprite()
             
             for player in self.players:
                 player.updateSprite()

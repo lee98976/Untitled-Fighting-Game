@@ -27,6 +27,6 @@ class Particle(pygame.sprite.Sprite):
         self.currentFrames += 1
         self.x += self.velocityX
         self.y += self.velocityY
-        self.rect.center = (self.x, self.y)
+        self.rect.center = (self.x + 45, self.y + 70)
         if self.currentFrames > self.activeFrames:
             self.kill()
