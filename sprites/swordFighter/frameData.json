@@ -9,10 +9,10 @@
         "loop" : false
     },
     "uppercut" : {
-        "uppercut1" : [0, 22],
-        "uppercut2" : [0, 44],
-        "uppercut3" : [1, 45],
-        "uppercut4" : [2, 70],
+        "uppercut1" : [0, 11],
+        "uppercut2" : [0, 22],
+        "uppercut3" : [1, 23],
+        "uppercut4" : [2, 35],
         "loop" : false
     },
     "block" : {
