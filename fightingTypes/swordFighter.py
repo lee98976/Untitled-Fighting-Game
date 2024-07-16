@@ -365,8 +365,8 @@ class SwordFighter(pygame.sprite.Sprite):
                         self.blockHealth = -5
                         self.state = "idle" 
 
-                        particle = pygame.image.load("sprites/background_img/P1Indicator.png")
-                        self.particleGroup.add(Particle(particle, self.x, self.y, 0, 0, 120, random.randint(1, 2039129493)))
+                        particle = pygame.image.load("sprites/particles/blockBreak.png")
+                        self.particleGroup.add(Particle(particle, self.x, self.y, 0, 0, 120))
 
         else:
             print("Player is still invicible.")

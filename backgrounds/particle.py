@@ -3,7 +3,7 @@ import pygame
 
 
 class Particle(pygame.sprite.Sprite):
-    def __init__(self, image, xPos, yPos, velocityX, velocityY, activeFrames, particleID):
+    def __init__(self, image, xPos, yPos, velocityX, velocityY, activeFrames):
         pygame.sprite.Sprite.__init__(self)
 
         # Image process
