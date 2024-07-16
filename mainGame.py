@@ -183,6 +183,7 @@ class MainGame():
                 self.player2.y = a["player2"]["y"]
                 self.player2.velocity = a["player2"]["velocity"]
 
+                self.attacks.empty()
                 for i in a["attacks"]:
                     self.attacks.add(Hitbox(i["name"], i["x"], i["y"], i["velocityX"], i["velocityY"], i["activeFrames"], i["damage"], i["knockback"], i["stunFrames"], i["invisFrames"], i["owner"], i["attackID"]))
         else:
@@ -221,12 +222,12 @@ class MainGame():
     def attackCollision(self, attack):
         collisions = pygame.sprite.spritecollide(attack, self.players, False, 
                                                 collided=pygame.sprite.collide_mask)
-        
+        test = 0
         # Check if there is collisions
         if len(collisions) >= 1:
             for player in collisions:
+                test += 1
                 if player.name != attack.owner and not (player.name in attack.hitPlayers):
-                    print("hit")
                     player.hit(attack.damage, attack.knockback, attack.stunFrames,
                             attack.invisFrames)
                     attack.hitPlayers.append(player.name)
@@ -261,7 +262,6 @@ class MainGame():
             for player in self.players:
                 player.updateSprite()
                 self.mapCollision(player)
-
             for attack in self.attacks:
                 attack.updateSprite()
                 self.attackCollision(attack)

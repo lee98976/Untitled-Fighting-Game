@@ -21,7 +21,7 @@ class Client():
 
         while True:
             try:
-                s.connect(('10.0.0.30', port)) # Change the server ip
+                s.connect(('192.168.0.241', port)) # Change the server ip
                 break
             except:
                 print("Attempting to connect to the server...")

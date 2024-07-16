@@ -282,7 +282,6 @@ class SwordFighter(pygame.sprite.Sprite):
                     # More actions can be added in the future
                     if self.state == "drawSword":
                         self.drawSword()
-                        print("attacked")
                     elif self.state == "jump":
                         self.jump()
                     elif self.state == "punch1":

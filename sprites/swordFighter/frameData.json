@@ -4,7 +4,7 @@
         "drawSword1" : [0, 7],
         "drawSword2" : [0, 14],
         "drawSword3" : [0, 20],
-        "drawSword4" : [1, 22],
+        "drawSword4" : [1, 21],
         "drawSword5" : [2, 40],
         "loop" : false
     },
