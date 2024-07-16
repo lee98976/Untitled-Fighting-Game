@@ -8,6 +8,13 @@
         "drawSword5" : [2, 40],
         "loop" : false
     },
+    "uppercut" : {
+        "uppercut1" : [0, 22],
+        "uppercut2" : [0, 44],
+        "uppercut3" : [1, 45],
+        "uppercut4" : [2, 70],
+        "loop" : false
+    },
     "block" : {
         "block1" : [3, 10],
         "block2" : [3, 20],

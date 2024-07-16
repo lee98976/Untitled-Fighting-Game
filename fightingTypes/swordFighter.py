@@ -63,7 +63,8 @@ class SwordFighter(pygame.sprite.Sprite):
         self.debounces = {
             "drawSword" : 0,
             "punch1" : 0,
-            "punchBarrage" : 0
+            "punchBarrage" : 0,
+            "uppercut" : 0
         }
         
         # Update
@@ -71,7 +72,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -159,9 +160,15 @@ class SwordFighter(pygame.sprite.Sprite):
             self.state = "punchBarrage"
             self.currentFrame = 0
             self.currentImage = 0
-            self.debounces["punchBarrage"] = 180
+            self.debounces["punchBarrage"] = 240
             if self.facingRight: self.velocity = [1.0, 0.0]
             else: self.velocity = [-1.0, 0.0]
+        elif 2 in self.mouseState and 2 in self.lastMouseState != 2 in self.mouseState and self.debounces["uppercut"] <= 0:
+            self.state = "uppercut"
+            self.currentFrame = 0
+            self.currentImage = 0
+            self.debounces["uppercut"] = 210
+            self.velocity = [0.0, 0.0]
         elif 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["drawSword"] <= 0:
             self.state = "punch1"
             self.currentFrame = 0
@@ -263,6 +270,18 @@ class SwordFighter(pygame.sprite.Sprite):
         summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, knockBackX / 5], 20, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
+    def uppercut(self):
+        if self.facingRight:
+            offsetX = 60
+            velocityX = 0.01
+        else:
+            offsetX = 10
+            velocityX = -0.01
+        
+        self.velocity = [0.0, 7.0]
+        summonedAttack = Hitbox("uppercut", self.x + offsetX, self.y + 50, velocityX, -5.0, 30, 15, [0, 6], 10, 0, self.name, random.randint(1, 184467440737095516))
+        self.attackGroup.add(summonedAttack)
+
     def updateFrame(self):
         #Conditions for looping:
         #1. State is not last state OR
@@ -299,6 +318,8 @@ class SwordFighter(pygame.sprite.Sprite):
                             self.punchBarrage(True)
                         else:
                             self.punchBarrage(False)
+                    elif self.state == "uppercut":
+                        self.uppercut()
 
         # Set the image based on the direction faced
         if self.facingRight:
