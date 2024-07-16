@@ -230,7 +230,7 @@ class SwordFighter(pygame.sprite.Sprite):
             velocityX = -5
             direction = -1
 
-        summonedAttack = Hitbox("drawSword", self.x + offsetX, self.y + 50, velocityX, 0, 100, 5, [4 * direction, 2], 30, 20, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("drawSword", self.x + offsetX, self.y + 50, velocityX, 0, 100, 5, [4 * direction, 3], 30, 20, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def punch1(self):
@@ -243,7 +243,7 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = -1
             velocityX = -0.01
 
-        summonedAttack = Hitbox("punch1", self.x + offsetX, self.y + 50, velocityX, 0, 2, 2, [direction, 0.1], 10, 0, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("punch1", self.x + offsetX, self.y + 50, velocityX, 0, 2, 4, [direction, 0.1], 10, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def punchBarrage(self, lastAttack):
@@ -260,7 +260,7 @@ class SwordFighter(pygame.sprite.Sprite):
             knockBackX = 7
             print("FINAL HIT")
         else: knockBackX = 0.1
-        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, 0.05], 20, 0, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, knockBackX / 5], 20, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def updateFrame(self):
