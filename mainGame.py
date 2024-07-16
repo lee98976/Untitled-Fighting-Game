@@ -32,7 +32,10 @@ class MainGame():
         self.attacks = pygame.sprite.Group()
         self.UIGroup = pygame.sprite.Group()
         self.players = pygame.sprite.Group()
+        # Game map is only for collision
         self.gameMap = pygame.sprite.Group()
+
+        # BG group is for images
         self.bg_group = pygame.sprite.Group()
         self.win_group = pygame.sprite.Group()
 
@@ -44,14 +47,14 @@ class MainGame():
         # Test Players
         if not self.isServer:
             if currentPlayer == "Player1":
-                self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, True, False, "Player1", facingRight=True)
-                self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, False, False, "Player2", facingRight=False)
+                self.player1 = SwordFighter(self.screen, self.attacks, 100, 0, True, False, "Player1", facingRight=True)
+                self.player2 = SwordFighter(self.screen, self.attacks, 200, 0, False, False, "Player2", facingRight=False)
             else:
-                self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, False, False, "Player1", facingRight=True)
-                self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, True, False, "Player2", facingRight=False)
+                self.player1 = SwordFighter(self.screen, self.attacks, 100, 0, False, False, "Player1", facingRight=True)
+                self.player2 = SwordFighter(self.screen, self.attacks, 200, 0, True, False, "Player2", facingRight=False)
         else:
-            self.player1 = SwordFighter(self.screen, self.attacks, 100, 150, True, True, "Player1", facingRight=True)
-            self.player2 = SwordFighter(self.screen, self.attacks, 200, 150, True, True, "Player2", facingRight=False)
+            self.player1 = SwordFighter(self.screen, self.attacks, 100, 0, True, True, "Player1", facingRight=True)
+            self.player2 = SwordFighter(self.screen, self.attacks, 200, 0, True, True, "Player2", facingRight=False)
 
         self.players.add(self.player1)
         self.players.add(self.player2)
@@ -67,18 +70,17 @@ class MainGame():
         self.UIGroup.add(blockBar)
         self.UIGroup.add(blockBar2)
 
-        # Platforms
-        platform = Platform(200, 275, 1000, 20) 
-        platform2 = Platform(200, 100, 1000, 20)
+        #New Platform
+        main_platform = pygame.image.load("sprites/platform_img/FirstDestination.png")
+        main_platform = ImgPlatform(main_platform, 6, 5, 250, 250)
+        self.bg_group.add(main_platform)
+
+        platform = Platform(main_platform.x, main_platform.y + 50, main_platform.image.get_width() - 10, main_platform.image.get_height() - 230)
         self.gameMap.add(platform)
-        self.gameMap.add(platform2)
 
         self.mainGameLoop()
 
-    # #New Platform
-    # tub_img = pygame.image.load("sprites/platform_img/tub_stage.png")
-    # tubPlatform = ImgPlatform(tub_img, 200, 275, 1000, 20)
-    # gameMap.add(tubPlatform)
+        
 
     def sendData(self):
         if not self.isServer:
@@ -293,20 +295,15 @@ class MainGame():
 
             # Draw
             self.players.draw(self.screen)
-            self.gameMap.draw(self.screen)
+            # self.gameMap.draw(self.screen)
             self.attacks.draw(self.screen)
             tempUIGroup.draw(self.screen)
-
-            if hasWon != "None":
-                time.sleep(3)
-                return
-
 
             # Send back the current game state
             self.sendData()
 
             
-            # Visualize health bar rectangle
-            # pygame.draw.rect(screen, (127, 127, 127), healthBar.rect)
+            # # Visualize health bar rectangle
+            # pygame.draw.rect(self.screen, (127, 127, 127), self.main_platform.rect)
 
             self.clock.tick(60) # 60 frames per second

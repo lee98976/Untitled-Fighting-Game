@@ -4,18 +4,7 @@ import socket
 import threading
 import time
 
-import os
-import sys
-
-import pygame
-from pygame.locals import QUIT
-
-from backgrounds.background import Background
-from fightingTypes.hitbox import Hitbox
-from fightingTypes.swordFighter import SwordFighter
-from map.platform import Platform
 from mainGame import MainGame
-from UI.healthBar import HealthBar
 
 class Server():
     def __init__(self, send_queue, get_queue1, get_queue2):
@@ -24,7 +13,7 @@ class Server():
         self.get_queue1 = get_queue1
         self.get_queue2 = get_queue2
         self.mainThread = threading.Thread(target=self.const_update, args=(self.pending, self.send_queue, self.get_queue1, self.get_queue2,))
-        self.mainThread.setDaemon(True)
+        self.mainThread.daemon = True
         self.player1 = False
         self.player2 = False
         self.mainThread.start()
