@@ -72,7 +72,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut", "stun"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -267,7 +267,7 @@ class SwordFighter(pygame.sprite.Sprite):
             knockBackX = 7
             print("FINAL HIT")
         else: knockBackX = 0.1
-        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, knockBackX / 5], 20, 0, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("punchBarrage", self.x + offsetX, self.y + 50, velocityX, 0, 1, 3, [direction * knockBackX, knockBackX / 5], 40, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def uppercut(self):
@@ -408,6 +408,8 @@ class SwordFighter(pygame.sprite.Sprite):
 
             if not checkEndLag and notInStun and notBlocking:
                 self.action()
+
+        if self.stunFrames > 0: self.state = "stun"
 
         # Calclate velocity
         self.calcVelocity()

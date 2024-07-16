@@ -73,5 +73,10 @@
         "punchBarrage12" : [1, 90],
         "punchBarrage13" : [2, 100],
         "loop" : false
+    },
+    "stun" : {
+        "stun1" : [3, 5],
+        "stun2" : [3, 10],
+        "loop" : true
     }
 }
