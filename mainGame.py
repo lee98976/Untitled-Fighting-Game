@@ -34,6 +34,7 @@ class MainGame():
         self.players = pygame.sprite.Group()
         self.gameMap = pygame.sprite.Group()
         self.bg_group = pygame.sprite.Group()
+        self.win_group = pygame.sprite.Group()
 
         # Background
         bg_img = pygame.image.load("sprites/background_img/bg_pix.png")
@@ -254,14 +255,11 @@ class MainGame():
                     sys.exit()
             pygame.display.update()
 
-            # Refill the screen to cover old sprites
-            self.screen.fill((30, 30, 30))
-            self.bg_group.draw(self.screen)
-
             # Update all changing sprites and run updateSprite()
             for player in self.players:
                 player.updateSprite()
                 self.mapCollision(player)
+
             for attack in self.attacks:
                 attack.updateSprite()
                 self.attackCollision(attack)
@@ -275,31 +273,39 @@ class MainGame():
                     if item.owner.state == "block":
                         item.updateSprite(item.owner.maxBlockHealth, item.owner.blockHealth, item.owner.x, item.owner.y)
                         tempUIGroup.add(item)
+
+            #TODO: Fix win
+            hasWon = self.checkWin()
+            
+            if hasWon != "None":
+                print(hasWon)
+                if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
+                elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
+                elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
+                
+                background = Background(bg_img, 6, 250, 250)
+                self.win_group.add(background)
+
+            # Refill the screen to cover old sprites
+            self.screen.fill((30, 30, 30))
+            self.bg_group.draw(self.screen)
+            self.win_group.draw(self.screen)
+
             # Draw
             self.players.draw(self.screen)
             self.gameMap.draw(self.screen)
             self.attacks.draw(self.screen)
             tempUIGroup.draw(self.screen)
 
+            if hasWon != "None":
+                time.sleep(3)
+                return
+
 
             # Send back the current game state
             self.sendData()
 
-            #TODO: Fix win
-            # hasWon = self.checkWin()
             
-            # if hasWon != "None":
-            #     if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
-            #     elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
-            #     elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
-                
-            #     background = Background(bg_img, 1, 250, 250)
-            #     self.bg_group.add(background)
-
-            #     time.sleep(3)
-
-            #     return
-
             # Visualize health bar rectangle
             # pygame.draw.rect(screen, (127, 127, 127), healthBar.rect)
 

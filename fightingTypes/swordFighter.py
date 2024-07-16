@@ -182,7 +182,12 @@ class SwordFighter(pygame.sprite.Sprite):
             self.velocity[1] = 7
             print("douba jump")
 
+    def checkFall(self):
+        if self.x >= 700 or self.x <= -200 or self.y >= 700 or self.y <= -200:
+            self.health = -10
+
     def checkHealth(self):
+        self.checkFall()
         if self.health <= 0:
             return False
         else:
