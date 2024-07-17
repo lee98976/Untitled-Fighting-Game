@@ -250,7 +250,7 @@ class SwordFighter(pygame.sprite.Sprite):
             velocityX = 5
             direction = 1
         else:
-            offsetX = 10
+            offsetX = 30
             velocityX = -5
             direction = -1
 
@@ -263,7 +263,7 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = 1
             velocityX = 0.01
         else:
-            offsetX = 10
+            offsetX = 30
             direction = -1
             velocityX = -0.01
 
@@ -276,7 +276,7 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = 1
             velocityX = 0.01
         else:
-            offsetX = 10
+            offsetX = 30
             direction = -1
             velocityX = -0.01
 
@@ -292,7 +292,7 @@ class SwordFighter(pygame.sprite.Sprite):
             offsetX = 60
             velocityX = 0.01
         else:
-            offsetX = 10
+            offsetX = 30
             velocityX = -0.01
         
         self.velocity = [0.0, 12.0]
@@ -304,7 +304,7 @@ class SwordFighter(pygame.sprite.Sprite):
             offsetX = 60
             velocityX = 0.01
         else:
-            offsetX = 10
+            offsetX = 30
             velocityX = -0.01
         
         self.velocity = [0.0, 0.0]
@@ -316,7 +316,7 @@ class SwordFighter(pygame.sprite.Sprite):
             offsetX = 60
             velocityX = 0.01
         else:
-            offsetX = 10
+            offsetX = 30
             velocityX = -0.01
         
         self.velocity = [0.0, 0.0]
