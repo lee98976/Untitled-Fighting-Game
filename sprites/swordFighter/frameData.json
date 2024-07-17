@@ -74,9 +74,27 @@
         "punchBarrage13" : [2, 100],
         "loop" : false
     },
-    "stun" : {
-        "stun1" : [3, 5],
-        "stun2" : [3, 10],
+    "grab" : {
+        "grab1" : [3, 2],
+        "grab2" : [3, 4],
         "loop" : true
+    },
+    "grabAction" : {
+        "grabAction1" : [0, 20],
+        "grabAction2" : [1, 30],
+        "grabAction3" : [0, 50],
+        "loop" : false
+    },
+    "grabbed" : {
+        "grabbed1" : [3, 2],
+        "grabbed2" : [3, 4],
+        "loop" : true
+    },
+    "pummel" : {
+        "pummel1" : [0, 5],
+        "pummel2" : [0, 10],
+        "pummel3" : [1, 15],
+        "pummel4" : [2, 20],
+        "loop" : false
     }
 }

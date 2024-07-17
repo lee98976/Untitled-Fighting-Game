@@ -66,7 +66,9 @@ class SwordFighter(pygame.sprite.Sprite):
             "drawSword" : 0,
             "punch1" : 0,
             "punchBarrage" : 0,
-            "uppercut" : 0
+            "uppercut" : 0,
+            "grabAction" : 0,
+            "pummel" : 0
         }
         
         # Update
@@ -74,7 +76,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut", "stun"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut", "grab", "grabAction", "grabbed", "pummel"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -142,7 +144,6 @@ class SwordFighter(pygame.sprite.Sprite):
             if pygame.K_SPACE in self.keyState: # block/parry
                 if not pygame.K_SPACE in self.lastKeyState:
                     self.parryFrames = 50
-                    print("refresh")
                 self.state = "block"
             else:
                 if self.state == "block":
@@ -152,6 +153,14 @@ class SwordFighter(pygame.sprite.Sprite):
             return True
 
     def attack(self):
+        if self.state == "grab":
+            if 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["pummel"] <= 0:
+                self.state = "pummel"
+                self.currentFrame = 0
+                self.currentImage = 0
+                self.debounces["pummel"] = 5
+                self.velocity = [0.0, 0.0]
+            return True
         if pygame.K_1 in self.keyState and pygame.K_1 in self.keyState != pygame.K_1 in self.keyState and self.debounces["drawSword"] <= 0: # Sword slash
             self.state = "drawSword"
             self.currentFrame = 0
@@ -165,13 +174,19 @@ class SwordFighter(pygame.sprite.Sprite):
             self.debounces["punchBarrage"] = 240
             if self.facingRight: self.velocity = [1.0, 0.0]
             else: self.velocity = [-1.0, 0.0]
+        elif pygame.K_e in self.keyState and pygame.K_e in self.keyState != pygame.K_e in self.keyState and self.debounces["grabAction"] <= 0:
+            self.state = "grabAction"
+            self.currentFrame = 0
+            self.currentImage = 0
+            self.debounces["grabAction"] = 120
+            self.velocity = [0.0, 0.0]
         elif 2 in self.mouseState and 2 in self.lastMouseState != 2 in self.mouseState and self.debounces["uppercut"] <= 0:
             self.state = "uppercut"
             self.currentFrame = 0
             self.currentImage = 0
             self.debounces["uppercut"] = 210
             self.velocity = [0.0, 0.0]
-        elif 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["drawSword"] <= 0:
+        elif 0 in self.mouseState and 0 in self.lastMouseState != 0 in self.mouseState and self.debounces["punch1"] <= 0:
             self.state = "punch1"
             self.currentFrame = 0
             self.currentImage = 0
@@ -284,6 +299,33 @@ class SwordFighter(pygame.sprite.Sprite):
         summonedAttack = Hitbox("uppercut", self.x + offsetX, self.y + 50, velocityX, -5.0, 30, 15, [0, 12], 30, 10, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
+    def grab(self):
+        if self.facingRight:
+            offsetX = 60
+            velocityX = 0.01
+        else:
+            offsetX = 10
+            velocityX = -0.01
+        
+        self.velocity = [0.0, 0.0]
+        summonedAttack = Hitbox("grab", self.x + offsetX, self.y + 50, velocityX, 0, 3, 0, [0, 0], 240, 0, self.name, random.randint(1, 184467440737095516))
+        self.attackGroup.add(summonedAttack)
+
+    def pummel(self):
+        if self.facingRight:
+            offsetX = 60
+            velocityX = 0.01
+        else:
+            offsetX = 10
+            velocityX = -0.01
+        
+        self.velocity = [0.0, 0.0]
+        summonedAttack = Hitbox("pummel", self.x + offsetX, self.y + 50, velocityX, 0, 2, 2, [0, 0], -50, -10, self.name, random.randint(1, 184467440737095516))
+        self.attackGroup.add(summonedAttack)
+        self.state = "grab"
+        self.currentFrame = 0
+        self.currentImage = 0
+
     def updateFrame(self):
         #Conditions for looping:
         #1. State is not last state OR
@@ -322,6 +364,10 @@ class SwordFighter(pygame.sprite.Sprite):
                             self.punchBarrage(False)
                     elif self.state == "uppercut":
                         self.uppercut()
+                    elif self.state == "grabAction":
+                        self.grab()
+                    elif self.state == "pummel":
+                        self.pummel()
 
         # Set the image based on the direction faced
         if self.facingRight:
@@ -334,9 +380,9 @@ class SwordFighter(pygame.sprite.Sprite):
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.mask.get_rect(topleft = (int(self.x), int(self.y)))
 
-    def hit(self, damage, knockback, stunFrames, invisFrames):
+    def hit(self, damage, knockback, stunFrames, invisFrames, state="idle"):
         if self.invisFrames <= 0:
-            if self.state != "block":
+            if self.state != "block" or state == "grabAction":
                 self.health -= damage
                 # Formula for knockback is base knockback * self.weight / 100 * (maxHealth - health)
                 knockbackX = knockback[0] * self.weight / 100 * (self.maxHealth-self.health) / 20
@@ -344,7 +390,7 @@ class SwordFighter(pygame.sprite.Sprite):
                 self.velocity = [knockbackX, knockbackY]
                 self.stunFrames = stunFrames
                 self.invisFrames = invisFrames
-                self.state = "idle"
+                self.state = state
             else:
                 if self.parryFrames > 0:
                     print("Opponent parried!")
@@ -376,10 +422,6 @@ class SwordFighter(pygame.sprite.Sprite):
         self.lastKeyState = item[2]
         self.mouseState = item[3]
         self.lastMouseState = item[4]
-        # print(print(len(self.keyState)))
-        # for i in range(len(self.keyState)):
-        #     if self.keyState[i]:
-        #         print(i)
     
     def keyFormat(self):
         if self.isServer == False and self.owned:
@@ -396,7 +438,13 @@ class SwordFighter(pygame.sprite.Sprite):
         elif self.isServer == True and self.owned == True:
             pass
     
-    def updateSprite(self):
+    def stunAnim(self):
+        if self.stunFrames > 0: 
+            newImage = self.image.copy()
+            newImage.fill((255, 255, 255, 127), special_flags=pygame.BLEND_ADD)
+            self.screen.blit(newImage, (self.x, self.y))
+
+    def updateSprite(self): 
         """
         Update determines the current animation. When no input has been recieved within a certain 
         time frame and is grounded, it will go back to idle. Otherwise the frames of movements
@@ -406,6 +454,13 @@ class SwordFighter(pygame.sprite.Sprite):
         # Format the keystrokes into a desired formate (Only the keystrokes held, not all)
         self.keyFormat()
 
+        if self.state == "grabbed" and self.stunFrames < 0:
+            if self.facingRight:
+                self.velocity = [-5.0, 2.0]
+            else:
+                self.velocity = [5.0, 2.0]
+            self.state = "idle"
+
         if self.owned:
             self.checkBlock()
 
@@ -413,11 +468,10 @@ class SwordFighter(pygame.sprite.Sprite):
             checkEndLag = self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][0] in [0, 1, 2]
             notInStun = self.stunFrames < 0
             notBlocking = self.state != "block"
+            notGrabbed = self.state != "grabbed"
 
-            if not checkEndLag and notInStun and notBlocking:
+            if not checkEndLag and notInStun and notBlocking and notGrabbed:
                 self.action()
-
-        if self.stunFrames > 0: self.state = "stun"
 
         # Calclate velocity
         self.calcVelocity()

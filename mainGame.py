@@ -86,9 +86,7 @@ class MainGame():
         platform = Platform(main_platform.x, main_platform.y + 50, main_platform.image.get_width() - 10, main_platform.image.get_height() - 230)
         self.gameMap.add(platform)
 
-        self.mainGameLoop()
-
-        
+        self.mainGameLoop()    
 
     def sendData(self):
         if not self.isServer:
@@ -239,13 +237,31 @@ class MainGame():
             for player in collisions:
                 test += 1
                 if player.name != attack.owner and not (player.name in attack.hitPlayers):
+                    state = "idle"
                     if attack.name == "uppercut":            
                         if attack.owner == "Player1":
-                            self.player1.hit(0, attack.knockback, 20, 20)
+                            self.player1.hit(0, attack.knockback, 0, 0)
                         elif attack.owner == "Player2":
-                            self.player2.hit(0, attack.knockback, 20, 20)
+                            self.player2.hit(0, attack.knockback, 0, 0)
+                    elif attack.name == "grab":
+                        state = "grabbed"
+                        if attack.owner == "Player1":
+                            self.player1.state = "grab"
+                            self.player1.debounces["grab"] = 300
+                            if self.player1.facingRight: player.facingRight = False
+                            else: player.facingRight = True
+                        elif attack.owner == "Player2":
+                            self.player2.state = "grab"
+                            self.player2.debounces["grab"] = 300
+                            if self.player2.facingRight: player.facingRight = False
+                            else: player.facingRight = True
+                    elif attack.name == "pummel":
+                        state = "grabbed"
+                        attack.stunFrames = player.stunFrames
+
+
                     player.hit(attack.damage, attack.knockback, attack.stunFrames,
-                            attack.invisFrames)
+                            attack.invisFrames, state=state)
                     attack.hitPlayers.append(player.name)
 
     def checkWin(self):
@@ -318,6 +334,9 @@ class MainGame():
             # self.gameMap.draw(self.screen)
             self.attacks.draw(self.screen)
             tempUIGroup.draw(self.screen)
+
+            for player in self.players:
+                player.stunAnim()
 
             # Send back the current game state
             self.sendData()
