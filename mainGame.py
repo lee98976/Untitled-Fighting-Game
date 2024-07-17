@@ -49,13 +49,13 @@ class MainGame():
         if not self.isServer:
             if currentPlayer == "Player1":
                 self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, True, False, "Player1", facingRight=True)
-                self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 200, 0, False, False, "Player2", facingRight=False)
+                self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 300, 0, False, False, "Player2", facingRight=False)
             else:
                 self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, False, False, "Player1", facingRight=True)
-                self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 200, 0, True, False, "Player2", facingRight=False)
+                self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 300, 0, True, False, "Player2", facingRight=False)
         else:
             self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, True, True, "Player1", facingRight=True)
-            self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 200, 0, True, True, "Player2", facingRight=False)
+            self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 300, 0, True, True, "Player2", facingRight=False)
 
         self.players.add(self.player1)
         self.players.add(self.player2)
@@ -91,9 +91,9 @@ class MainGame():
     def sendData(self):
         if not self.isServer:
             if self.currentPlayer == "Player1":
-                data = ["Player1", self.player1.keyState, self.player1.lastKeyState, self.player1.mouseState, self.player1.lastMouseState]
+                data = ["Player1", self.player1.keyState, self.player1.lastKeyState, self.player1.mouseState, self.player1.lastMouseState, self.player1.modsState, self.player1.lastModsState]
             elif self.currentPlayer == "Player2":
-                data = ["Player2", self.player2.keyState, self.player2.lastKeyState, self.player2.mouseState, self.player2.lastMouseState]
+                data = ["Player2", self.player2.keyState, self.player2.lastKeyState, self.player2.mouseState, self.player2.lastMouseState, self.player2.modsState, self.player2.lastModsState]
             self.send_queue.put(data)
         else:
             dataDictionary = {
@@ -219,6 +219,9 @@ class MainGame():
 
                     player.onPlatform = True
                     player.doubleJump = True
+                    player.dash = True
+                    if player.velocity[1] < 0:
+                        player.velocity[1] = 0
                     # print("Player has hit the top of a platform.")
                 elif player.rect.top > i.rect.bottom + 10:  # Player hit the bottom
                     player.velocity[1] = 0

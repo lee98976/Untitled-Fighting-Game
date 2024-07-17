@@ -27,8 +27,8 @@ class SwordFighter(pygame.sprite.Sprite):
         self.name = name
 
         #Game mechanics
-        self.health = 100
-        self.maxHealth = 100
+        self.health = 120
+        self.maxHealth = 120
         self.maxBlockHealth = 20
         self.blockHealth = 20
         self.weight = 100
@@ -42,6 +42,7 @@ class SwordFighter(pygame.sprite.Sprite):
         self.lastState = "idle"
         self.state = "idle"
         self.facingRight = facingRight
+        self.lastFacingRight = facingRight
         self.screen = screen
         self.currentImage = 0
         self.image = self.images[self.state][0]
@@ -50,8 +51,10 @@ class SwordFighter(pygame.sprite.Sprite):
         # Key Stroke
         self.lastKeyState = []
         self.lastMouseState = []
+        self.lastModsState = 0
         self.keyState = []
         self.mouseState = []
+        self.modsState = 0
 
         # Movement
         self.x = x
@@ -59,6 +62,14 @@ class SwordFighter(pygame.sprite.Sprite):
         self.velocity = [0.0, 0.0]
         self.onPlatform = False
         self.doubleJump = True
+        self.dash = True
+        self.baseMoveSpeed = 2
+        self.moveSpeed = 2
+        self.dashSpeed = 6.0
+        self.jumpPower = 5
+        self.isSprinting = False
+        self.dirX = 0
+        self.dirY = 0
 
         # Attacking
         self.attackGroup = attackGroup
@@ -76,7 +87,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def imageProcess(self):
         imagesPath = "sprites/swordFighter/"
-        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut", "grab", "grabAction", "grabbed", "pummel"]
+        animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut", "grab", "grabAction", "grabbed", "pummel", "dash"]
         with open("sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
@@ -112,27 +123,58 @@ class SwordFighter(pygame.sprite.Sprite):
         # Attacks, block, movement, idle
         if self.attack(): return
         if self.checkBlock(): return
+        if self.checkDash(): return
         if self.movement(): return
         self.state = "idle"
+
+    def checkDash(self):
+        if not pygame.K_SPACE in self.keyState or not self.dash:
+            return False
         
+        self.dirY = 0
+        if self.facingRight: self.dirX = 1
+        else: self.dirX = -1
+        
+        if pygame.K_d in self.keyState: self.dirX = 1
+        elif pygame.K_a in self.keyState: self.dirX = -1
+        if pygame.K_w in self.keyState: self.dirY = 1
+        elif pygame.K_s in self.keyState: self.dirY = -1
+
+        self.state = "dash"
+        self.dash = False
+
+        return True
+    
     def movement(self):
+        if pygame.KMOD_LSHIFT & self.modsState:
+            self.isSprinting = True
+            self.moveSpeed = self.baseMoveSpeed * 2
+            print("okay")
+        else: 
+            self.isSprinting = False
+            self.moveSpeed = self.baseMoveSpeed
+
+
         if pygame.K_w in self.keyState and pygame.K_w in self.keyState != pygame.K_w in self.lastKeyState: # jump TODO: detect if on ground before jump
-            # print(self.onPlatform, self.doubleJump)
             self.state = "jump"
         elif pygame.K_s in self.keyState: # phase through platforms
             pass
         elif pygame.K_a in self.keyState: 
             self.velocity[0] -= 0.2
-            self.velocity[0] = max(self.velocity[0], -2)
+            self.velocity[0] = max(self.velocity[0], -self.moveSpeed)
             self.facingRight = False
             self.state = "walk"
         elif pygame.K_d in self.keyState:
             self.velocity[0] += 0.2
-            self.velocity[0] = min(self.velocity[0], 2)
+            self.velocity[0] = min(self.velocity[0], self.moveSpeed)
             self.facingRight = True
             self.state = "walk"
         else:
             return False
+        
+        if self.facingRight != self.lastFacingRight and self.isSprinting:
+            self.stunFrames = 10
+            self.velocity[0] = self.velocity[0] / 3
         
         if self.onPlatform == False and self.state == "walk":
             self.state = "freeFall"
@@ -141,7 +183,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def checkBlock(self):
         if self.blockHealth > 0:
-            if pygame.K_SPACE in self.keyState: # block/parry
+            if pygame.K_f in self.keyState: # block/parry
                 if not pygame.K_SPACE in self.lastKeyState:
                     self.parryFrames = 50
                 self.state = "block"
@@ -199,12 +241,10 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def jump(self):
         if self.onPlatform:   
-            self.velocity[1] = 5
-            print("jump")
+            self.velocity[1] = self.jumpPower
         elif self.doubleJump:
             self.doubleJump = False
-            self.velocity[1] = 7
-            print("douba jump")
+            self.velocity[1] = self.jumpPower * 1.4
 
     def checkFall(self):
         if self.x >= 700 or self.x <= -200 or self.y >= 700 or self.y <= -200:
@@ -225,12 +265,12 @@ class SwordFighter(pygame.sprite.Sprite):
             return True
 
     def calcVelocity(self):
-        if self.velocity[0] > 2 or self.velocity[0] < -2:
+        if self.velocity[0] > self.moveSpeed or self.velocity[0] < -self.moveSpeed:
             self.velocity[0] = self.velocity[0] * 0.9
-        if self.velocity[1] > 3:
+        if self.velocity[1] > self.jumpPower:
             self.velocity[1] = self.velocity[1] * 0.9
         if not self.onPlatform:
-            self.velocity[1] -= 0.1
+            self.velocity[1] -= 0.12
 
         if self.stunFrames <= 0:
             if not(pygame.K_a in self.keyState or pygame.K_d in self.keyState) or self.state == "block":
@@ -240,6 +280,8 @@ class SwordFighter(pygame.sprite.Sprite):
                     self.velocity[0] += 0.1
                 else:
                     self.velocity[0] = 0
+
+        if self.state == "dash": self.velocity = [self.dirX * self.dashSpeed, self.dirY * self.dashSpeed]
         
         self.x += self.velocity[0]
         self.y -= self.velocity[1]
@@ -250,7 +292,7 @@ class SwordFighter(pygame.sprite.Sprite):
             velocityX = 5
             direction = 1
         else:
-            offsetX = 30
+            offsetX = 35
             velocityX = -5
             direction = -1
 
@@ -263,7 +305,7 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = 1
             velocityX = 0.01
         else:
-            offsetX = 30
+            offsetX = 35
             direction = -1
             velocityX = -0.01
 
@@ -276,7 +318,7 @@ class SwordFighter(pygame.sprite.Sprite):
             direction = 1
             velocityX = 0.01
         else:
-            offsetX = 30
+            offsetX = 35
             direction = -1
             velocityX = -0.01
 
@@ -292,11 +334,11 @@ class SwordFighter(pygame.sprite.Sprite):
             offsetX = 60
             velocityX = 0.01
         else:
-            offsetX = 30
+            offsetX = 35
             velocityX = -0.01
         
         self.velocity = [0.0, 12.0]
-        summonedAttack = Hitbox("uppercut", self.x + offsetX, self.y + 50, velocityX, -5.0, 30, 15, [0, 12], 30, 10, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("uppercut", self.x + offsetX, self.y + 50, velocityX, -5.0, 30, 15, [0, 8], 30, 10, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
     def grab(self):
@@ -304,7 +346,7 @@ class SwordFighter(pygame.sprite.Sprite):
             offsetX = 60
             velocityX = 0.01
         else:
-            offsetX = 30
+            offsetX = 35
             velocityX = -0.01
         
         self.velocity = [0.0, 0.0]
@@ -316,7 +358,7 @@ class SwordFighter(pygame.sprite.Sprite):
             offsetX = 60
             velocityX = 0.01
         else:
-            offsetX = 30
+            offsetX = 35
             velocityX = -0.01
         
         self.velocity = [0.0, 0.0]
@@ -422,6 +464,8 @@ class SwordFighter(pygame.sprite.Sprite):
         self.lastKeyState = item[2]
         self.mouseState = item[3]
         self.lastMouseState = item[4]
+        self.modsState = item[5]
+        self.lastModsState = item[6]
     
     def keyFormat(self):
         if self.isServer == False and self.owned:
@@ -429,6 +473,7 @@ class SwordFighter(pygame.sprite.Sprite):
             temp2 = pygame.mouse.get_pressed()
             self.keyState = []
             self.mouseState = []
+            self.modsState = pygame.key.get_mods()
             for i in range(len(temp1)):
                 if temp1[i] == True:
                     self.keyState.append(i)
@@ -495,3 +540,4 @@ class SwordFighter(pygame.sprite.Sprite):
         self.lastState = self.state
         self.lastKeyState = self.keyState
         self.lastMouseState = self.mouseState
+        self.lastFacingRight = self.facingRight
