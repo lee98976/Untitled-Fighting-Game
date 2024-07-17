@@ -60,6 +60,11 @@ class Server():
 
             # Send the name of the player ONLY ONCE
             conn.send(name.encode())
+
+            while not(self.player1 and self.player2):
+                time.sleep(1)
+                
+            conn.send("start".encode())
         
             while True:
                 data = conn.recv(16384)
@@ -108,7 +113,6 @@ while server.player1 == False or server.player2 == False:
 
 # Game Start sequence
 print("Game is starting in...")
-time.sleep(0.5)
 print("3,")
 time.sleep(0.5)
 print("2,")

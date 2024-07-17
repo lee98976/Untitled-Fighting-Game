@@ -15,4 +15,4 @@ currentPlayer = currentPlayer.decode()
 
 # currentPlayer = "Player1"
 
-game = MainGame(send_queue, get_queue, False, currentPlayer=currentPlayer)
+game = MainGame(send_queue, get_queue, False, currentPlayer=currentPlayer, data_reciever=data_receiver)

@@ -8,6 +8,7 @@ from pygame.locals import QUIT
 
 from UI.blockBar import BlockBar
 from backgrounds.background import Background
+from backgrounds.particle import Particle
 from fightingTypes.hitbox import Hitbox
 from fightingTypes.swordFighter import SwordFighter
 from map.platform import Platform
@@ -15,13 +16,17 @@ from UI.healthBar import HealthBar
 from map.imgPlatform import ImgPlatform
 
 class MainGame():
-    def __init__(self, send_queue, get_queue1, isServer, currentPlayer=None, get_queue2=None):
+    def __init__(self, send_queue, get_queue1, isServer, currentPlayer=None, get_queue2=None, data_reciever=None):
         # Init
+        self.data_reciever = data_reciever
         self.currentPlayer = currentPlayer
         self.send_queue = send_queue
         self.get_queue1 = get_queue1
         self.get_queue2 = get_queue2
         self.isServer = isServer
+
+        # Game frames is set to zero at the start
+        self.gameFrames = 10000
 
         pygame.init()
         self.clock = pygame.time.Clock()
@@ -87,6 +92,29 @@ class MainGame():
         self.gameMap.add(platform)
 
         self.mainGameLoop()    
+
+    def countDown(self):
+        if not self.isServer:
+            if self.gameFrames == 1:
+                print("3")
+                cd_image = pygame.image.load("sprites/countdown/cd_3.png")
+                cd_3 = Particle(cd_image, 250, 100, 0, 0, 30)
+                self.particle_group.add(cd_3)
+            elif self.gameFrames == 31:
+                print("2")
+                cd_image = pygame.image.load("sprites/countdown/cd_2.png")
+                cd_2 = Particle(cd_image, 250, 100, 0, 0, 30)
+                self.particle_group.add(cd_2)
+            elif self.gameFrames == 61:
+                print("1")
+                cd_image = pygame.image.load("sprites/countdown/cd_1.png")
+                cd_1 = Particle(cd_image, 250, 100, 0, 0, 30)
+                self.particle_group.add(cd_1)
+            elif self.gameFrames == 91:
+                print("GO")
+                cd_image = pygame.image.load("sprites/countdown/go.png")
+                cd_go = Particle(cd_image, 250, 100, 0, 0, 30)
+                self.particle_group.add(cd_go)
 
     def sendData(self):
         if not self.isServer:
@@ -160,7 +188,6 @@ class MainGame():
         if not self.isServer:
             while not self.get_queue1.empty():
                 a = self.get_queue1.get()
-                # print(a)
                 self.player1.health = a["player1"]["health"]
                 self.player1.maxHealth = a["player1"]["maxHealth"]
                 self.player1.blockHealth = a["player1"]["blockHealth"]
@@ -327,8 +354,17 @@ class MainGame():
                 self.win_group.add(background)
 
             # Refill the screen to cover old sprites
+            if not self.isServer:
+                if self.data_reciever.start != "no":
+                    self.data_reciever.start = "no"
+                    self.gameFrames = 0
+            
+            # Shows the 3, 2, 1, Go! on the screen at certain frames
+            self.countDown()
+
             self.screen.fill((30, 30, 30))
             self.bg_group.draw(self.screen)
+
             self.win_group.draw(self.screen)
             self.particle_group.draw(self.screen)
 
@@ -344,7 +380,7 @@ class MainGame():
             # Send back the current game state
             self.sendData()
 
-            
+            self.gameFrames += 1
             # # Visualize health bar rectangle
             # pygame.draw.rect(self.screen, (127, 127, 127), self.main_platform.rect)
 
