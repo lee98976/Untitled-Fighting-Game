@@ -71,7 +71,7 @@
         "punchBarrage10" : [1, 84],
         "punchBarrage11" : [1, 87],
         "punchBarrage12" : [1, 90],
-        "punchBarrage13" : [2, 100],
+        "punchBarrage13" : [2, 120],
         "loop" : false
     },
     "grab" : {
@@ -98,8 +98,8 @@
         "loop" : false
     },
     "dash" : {
-        "dash1" : [1, 10],
-        "dash2" : [1, 20],
+        "dash1" : [1, 7],
+        "dash2" : [1, 14],
         "loop" : false
     }
 

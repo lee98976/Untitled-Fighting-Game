@@ -104,6 +104,8 @@ while server.player1 == False or server.player2 == False:
         print("Waiting for both players...")
     time.sleep(1)
 
+
+
 # Game Start sequence
 print("Game is starting in...")
 time.sleep(0.5)
