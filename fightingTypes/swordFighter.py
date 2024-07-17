@@ -382,7 +382,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def hit(self, damage, knockback, stunFrames, invisFrames, state="idle"):
         if self.invisFrames <= 0:
-            if self.state != "block" or state == "grabAction":
+            if self.state != "block" or state == "grabAction" or state == "pummel":
                 self.health -= damage
                 # Formula for knockback is base knockback * self.weight / 100 * (maxHealth - health)
                 knockbackX = knockback[0] * self.weight / 100 * (self.maxHealth-self.health) / 20
