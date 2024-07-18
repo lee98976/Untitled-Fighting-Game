@@ -380,7 +380,7 @@ class SwordFighter(pygame.sprite.Sprite):
             velocityX = -0.01
         
         self.velocity = [0.0, 0.0]
-        summonedAttack = Hitbox("pummel", self.x + offsetX, self.y + 50, velocityX, 0, 2, 2, [0, 0], -50, -10, self.name, random.randint(1, 184467440737095516))
+        summonedAttack = Hitbox("pummel", self.x + offsetX, self.y + 50, velocityX, 0, 2, 1.3, [0, 0], -50, -10, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
         self.state = "grab"
         self.currentFrame = 0
