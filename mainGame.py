@@ -26,13 +26,67 @@ class MainGame():
         self.get_queue2 = get_queue2
         self.isServer = isServer
 
-        # Game frames is set to zero at the start
-        self.gameFrames = 10000
-
+        # Initalize the window
         pygame.init()
         self.clock = pygame.time.Clock()
         self.screen = pygame.display.set_mode((500, 500))
         pygame.display.set_caption('Untitled Fighting Game!')
+
+        if not self.isServer:
+            self.mainUILoop()
+    
+        self.setupGame()
+        self.mainGameLoop()    
+
+        pygame.quit()
+
+    def setupUI(self):
+        playerText = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 50), (200, 50)), html_text="<b>Players</b>", manager=self.manager)
+        statusText = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 50), (200, 50)), html_text="<b>Status</b>", manager=self.manager)
+        player1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 100), (200, 100)), html_text="Player1", manager=self.manager)
+        player2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 200), (200, 100)), html_text="Player2", manager=self.manager)
+
+        ready1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 100), (200, 100)), html_text="Unready", manager=self.manager)
+        ready2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 200), (200, 100)), html_text="Unready", manager=self.manager)
+
+        self.lockIn = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((200, 300), (100, 50)), text='LOCK IN', manager=self.manager)
+
+        swordFighterImage = pygame.image.load("UI/SwordFighterIcon.png")
+        swordFighterIcon = pygame.transform.scale(swordFighterImage, (2, 2))
+        
+        swordFighterIcon = pygame_gui.elements.UIImage(relative_rect=pygame.Rect((200, 350), (100, 100)), image_surface=swordFighterImage, manager=self.manager)
+
+    def mainUILoop(self):
+        self.manager = pygame_gui.UIManager((500, 500), "UI/styling.json")
+        self.setupUI()
+
+        while True:
+            deltaTime = self.clock.tick(60)/1000.0
+            for event in pygame.event.get():
+                if event.type == pygame_gui.UI_BUTTON_PRESSED:
+                    if event.ui_element == self.lockIn:
+                        if self.currentPlayer == "Player1": self.send_queue.put("p1ready")
+                        elif self.currentPlayer == "Player2": self.send_queue.put("p2ready")
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                self.manager.process_events(event)
+            self.manager.update(deltaTime)
+
+            if not self.isServer:
+                if self.data_reciever.start != "no":
+                    self.data_reciever.start = "no"
+                    self.gameFrames = 0
+                    break
+    
+            self.screen.fill((197, 255, 253))
+            self.manager.draw_ui(self.screen)
+
+            pygame.display.update()
+
+    def setupGame(self):
+        # Game frames is set to zero at the start
+        self.gameFrames = 1000000
 
         # Groups
         self.attacks = pygame.sprite.Group()
@@ -53,7 +107,7 @@ class MainGame():
 
         # Test Players
         if not self.isServer:
-            if currentPlayer == "Player1":
+            if self.currentPlayer == "Player1":
                 self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, True, False, "Player1", facingRight=True)
                 self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 300, 0, False, False, "Player2", facingRight=False)
             else:
@@ -94,10 +148,6 @@ class MainGame():
 
         platform = Platform(main_platform.x, main_platform.y + 50, main_platform.image.get_width() - 10, main_platform.image.get_height() - 230)
         self.gameMap.add(platform)
-
-
-        self.mainUILoop()
-        self.mainGameLoop()    
 
     def countDown(self):
         if not self.isServer:
@@ -318,23 +368,6 @@ class MainGame():
         elif alive1 and not alive2: return "Player1"
         elif not alive1 and not alive2: return "Tie"
 
-    def mainUILoop(self):
-        self.manager = pygame_gui.UIManager((500, 500))
-
-        while True:
-            deltaTime = self.clock.tick(60)/1000.0
-            for event in pygame.event.get():
-                if event.type == QUIT:
-                    pygame.quit()
-                    sys.exit()
-                self.manager.process_events(event)
-            self.manager.update(deltaTime)
-    
-            self.screen.fill((0, 0, 0))
-            self.manager.draw_ui(self.screen)
-
-            pygame.display.update()
-
     def mainGameLoop(self):
         while True:
             # Recieve any player inputs sent in and handle them
@@ -384,15 +417,16 @@ class MainGame():
                 self.win_group.add(Platform(250, 100, background.rect.width, background.rect.height-100))
                 self.win_group.add(background)
 
-            # Refill the screen to cover old sprites
-            if not self.isServer:
-                if self.data_reciever.start != "no":
-                    self.data_reciever.start = "no"
-                    self.gameFrames = 0
+                pygame.display.update()
+
+                time.sleep(1)
+                
+                return
             
             # Shows the 3, 2, 1, Go! on the screen at certain frames
             self.countDown()
 
+            # Refill the screen to cover old sprites
             self.screen.fill((30, 30, 30))
             self.bg_group.draw(self.screen)
 
