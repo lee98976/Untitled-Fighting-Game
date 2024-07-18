@@ -2,6 +2,7 @@ import json
 import socket
 import threading
 import time
+import queue
 
 
 class Client():
@@ -9,6 +10,8 @@ class Client():
         # Create a thread that runs a socket
         self.playerName = None
         self.start = "no"
+        self.ready1 = False
+        self.ready2 = False
         self.sendQueue = sendQueue # Send queue is used to send keystrokes to the server
         self.receiveQueue = receiveQueue # Recieve queue is used to recieve game data about players and attacks.
         self.mainThread = threading.Thread(target=self.const_update, args=(sendQueue, receiveQueue))
@@ -34,13 +37,19 @@ class Client():
         # s.settimeout(0.05)
 
         # Recieve the player name ONLY ONCE (The server should already be up before the client is run.)
+
+
         name = s.recv(32768)
         while not name:
             name = s.recv(32768)
             time.sleep(0.1)
 
         self.playerName = name.decode()
+
+        # setReadyThread = threading.Thread(target=self.checkReady, args=(s,))
+        # setReadyThread.start()
         
+        # Wait for start and recieve readies
         data = sendQueue.get()
         while not data:
             data = sendQueue.get()
@@ -48,6 +57,7 @@ class Client():
         
         s.send(data.encode())
 
+        # Recieve start
         data = False
         while not data:
             data = s.recv(32768)
@@ -55,6 +65,8 @@ class Client():
 
         self.start = data
 
+        print("okay, alright,")
+        sendQueue = queue.Queue()
         while True:
 
             # Send JSON to server:
@@ -77,3 +89,13 @@ class Client():
 
                 # Place the info inside of the recieveQueue
                 receiveQueue.put(server_info)
+    
+    def checkReady(self, s):
+        while True:
+            ready = s.recv(32768)
+            print("on and")
+            if ready:
+                ready = ready.decode()
+                if ready == "p1": self.ready1 = True
+                elif ready == "p2" : self.ready2 = True
+                return

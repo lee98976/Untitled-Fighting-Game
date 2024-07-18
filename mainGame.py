@@ -46,8 +46,8 @@ class MainGame():
         player1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 100), (200, 100)), html_text="Player1", manager=self.manager)
         player2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 200), (200, 100)), html_text="Player2", manager=self.manager)
 
-        ready1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 100), (200, 100)), html_text="Unready", manager=self.manager)
-        ready2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 200), (200, 100)), html_text="Unready", manager=self.manager)
+        self.ready1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 100), (200, 100)), html_text="Unready", manager=self.manager)
+        self.ready2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 200), (200, 100)), html_text="Unready", manager=self.manager)
 
         self.lockIn = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((200, 300), (100, 50)), text='LOCK IN', manager=self.manager)
 
@@ -72,6 +72,9 @@ class MainGame():
                     sys.exit()
                 self.manager.process_events(event)
             self.manager.update(deltaTime)
+
+            if self.data_reciever.ready1: self.ready1Text.set_text("Ready!")
+            if self.data_reciever.ready2: self.ready2Text.set_text("Ready!")
 
             if not self.isServer:
                 if self.data_reciever.start != "no":

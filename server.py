@@ -74,22 +74,30 @@ class Server():
 
             # Wait 
             while not(self.p1ready or self.p2ready):
+                
                 data = conn.recv(32768)
 
                 if data:
                     data = data.decode('utf-8')
                     if data == "p1ready":
                         self.p1ready = True
+                        pending.put("p1")
                     elif data == "p2ready":
                         self.p2ready = True
-
+                        pending.put("p1")
+                
                 time.sleep(0.5)
 
                 # print(self.p1ready, self.p2ready, name)
-            
+            if not pending.empty():
+                item = pending.get()
+                print(item, name)
+                conn.send(item.encode())
+                
             # print(name)
+            pending = queue.Queue()
             conn.send("start".encode())
-        
+
             while True:
                 data = conn.recv(32768)
                 
@@ -121,7 +129,6 @@ class Server():
                     conn.send(dataSend.encode('utf-8'))
                 
                 if self.cleanUp:
-                    print("thread cancelled")
                     return
 
    
