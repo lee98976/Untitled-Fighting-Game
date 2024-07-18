@@ -61,6 +61,9 @@ class MainGame():
         else:
             self.player1 = SwordFighter(self.screen, self.attacks, self.particle_group, 100, 0, True, True, "Player1", facingRight=True)
             self.player2 = SwordFighter(self.screen, self.attacks, self.particle_group, 300, 0, True, True, "Player2", facingRight=False)
+        
+        self.player1.opponent = self.player2
+        self.player2.opponent = self.player1
 
         self.players.add(self.player1)
         self.players.add(self.player2)
@@ -278,13 +281,21 @@ class MainGame():
                         if attack.owner == "Player1":
                             self.player1.state = "grab"
                             self.player1.debounces["grab"] = 300
-                            if self.player1.facingRight: player.facingRight = False
-                            else: player.facingRight = True
+                            if self.player1.facingRight: 
+                                player.facingRight = False
+                                player.x = self.player1.x + 40
+                            else:
+                                player.facingRight = True
+                                player.x = self.player1.x - 20
                         elif attack.owner == "Player2":
                             self.player2.state = "grab"
                             self.player2.debounces["grab"] = 300
-                            if self.player2.facingRight: player.facingRight = False
-                            else: player.facingRight = True
+                            if self.player2.facingRight: 
+                                player.facingRight = False
+                                player.x = self.player2.x + 40
+                            else:
+                                player.facingRight = True
+                                player.x = self.player2.x - 20
                     elif attack.name == "pummel":
                         state = "grabbed"
                         attack.stunFrames = player.stunFrames

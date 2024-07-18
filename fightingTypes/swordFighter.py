@@ -25,6 +25,7 @@ class SwordFighter(pygame.sprite.Sprite):
         self.owned = owned
         self.isServer = isServer
         self.name = name
+        self.opponent = None
 
         #Game mechanics
         self.health = 120
@@ -118,9 +119,10 @@ class SwordFighter(pygame.sprite.Sprite):
         # print("All sprites:", images)
         return images, attackImages, frameData
     
-    def action(self):
+    def action(self, ):
         # Priority Order:
         # Attacks, block, movement, idle
+
         if self.attack(): return
         if self.checkBlock(): return
         if self.checkDash(): return
@@ -353,6 +355,22 @@ class SwordFighter(pygame.sprite.Sprite):
         summonedAttack = Hitbox("grab", self.x + offsetX, self.y + 50, velocityX, 0, 3, 0, [0, 0], 240, 0, self.name, random.randint(1, 184467440737095516))
         self.attackGroup.add(summonedAttack)
 
+    def grabMash(self):
+        if pygame.K_w in self.keyState and not pygame.K_w in self.lastKeyState: self.stunFrames -= 3; self.y += random.uniform(-5, 5)
+        if pygame.K_a in self.keyState and not pygame.K_a in self.lastKeyState: self.stunFrames -= 3; self.x += random.uniform(-5, 5)
+        if pygame.K_s in self.keyState and not pygame.K_s in self.lastKeyState: self.stunFrames -= 3; self.y += random.uniform(-5, 5)
+        if pygame.K_d in self.keyState and not pygame.K_d in self.lastKeyState: self.stunFrames -= 3; self.x += random.uniform(-5, 5)
+
+    def grabThrow(self):
+        if self.state == "grabbed" and self.stunFrames < 0:
+            if self.facingRight:
+                throwKB = [-8.0, 2.0]
+            else:
+                throwKB = [8.0, 2.0]
+            self.stunFrames = 60
+            self.hit(10, throwKB, 60, 40, "idle")
+            self.opponent.state = "idle"
+
     def pummel(self):
         if self.facingRight:
             offsetX = 60
@@ -424,7 +442,7 @@ class SwordFighter(pygame.sprite.Sprite):
 
     def hit(self, damage, knockback, stunFrames, invisFrames, state="idle"):
         if self.invisFrames <= 0:
-            if self.state != "block" or state == "grabAction" or state == "pummel":
+            if self.state != "block" or state == "grabbed":
                 self.health -= damage
                 # Formula for knockback is base knockback * self.weight / 100 * (maxHealth - health)
                 knockbackX = knockback[0] * self.weight / 100 * (self.maxHealth-self.health) / 20
@@ -499,12 +517,8 @@ class SwordFighter(pygame.sprite.Sprite):
         # Format the keystrokes into a desired formate (Only the keystrokes held, not all)
         self.keyFormat()
 
-        if self.state == "grabbed" and self.stunFrames < 0:
-            if self.facingRight:
-                self.velocity = [-5.0, 2.0]
-            else:
-                self.velocity = [5.0, 2.0]
-            self.state = "idle"
+        # If grab ends, throw
+        self.grabThrow()
 
         if self.owned:
             self.checkBlock()
@@ -513,10 +527,12 @@ class SwordFighter(pygame.sprite.Sprite):
             checkEndLag = self.frameData[self.state][self.state + str(len(self.frameData[self.state]) - 1)][0] in [0, 1, 2]
             notInStun = self.stunFrames < 0
             notBlocking = self.state != "block"
-            notGrabbed = self.state != "grabbed"
+            isGrabbed = self.state == "grabbed"
 
-            if not checkEndLag and notInStun and notBlocking and notGrabbed:
+            if not checkEndLag and notInStun and notBlocking and not isGrabbed:
                 self.action()
+            if isGrabbed:
+                self.grabMash()
 
         # Calclate velocity
         self.calcVelocity()
