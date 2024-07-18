@@ -4,6 +4,7 @@ import sys
 import time
 
 import pygame
+import pygame_gui
 from pygame.locals import QUIT
 
 from UI.blockBar import BlockBar
@@ -94,6 +95,8 @@ class MainGame():
         platform = Platform(main_platform.x, main_platform.y + 50, main_platform.image.get_width() - 10, main_platform.image.get_height() - 230)
         self.gameMap.add(platform)
 
+
+        self.mainUILoop()
         self.mainGameLoop()    
 
     def countDown(self):
@@ -314,6 +317,23 @@ class MainGame():
         elif not alive1 and alive2: return "Player2"
         elif alive1 and not alive2: return "Player1"
         elif not alive1 and not alive2: return "Tie"
+
+    def mainUILoop(self):
+        self.manager = pygame_gui.UIManager((500, 500))
+
+        while True:
+            deltaTime = self.clock.tick(60)/1000.0
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+                self.manager.process_events(event)
+            self.manager.update(deltaTime)
+    
+            self.screen.fill((0, 0, 0))
+            self.manager.draw_ui(self.screen)
+
+            pygame.display.update()
 
     def mainGameLoop(self):
         while True:
