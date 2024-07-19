@@ -22,7 +22,7 @@ class MainGame():
     def __init__(self, send_queue, get_queue1, isServer, currentPlayer=None, get_queue2=None, data_reciever=None):
         # Init
         self.data_reciever = data_reciever
-        self.data_reciever.mainGame = self
+        if not isServer: self.data_reciever.mainGame = self
         self.currentPlayer = currentPlayer
         self.send_queue = send_queue
         self.get_queue1 = get_queue1
@@ -64,9 +64,9 @@ class MainGame():
 
     def setCurrentPlayer(self):
         # Player name
-        currentPlayer = self.data_receiver.playerName
+        currentPlayer = self.data_reciever.playerName
         while currentPlayer == None:
-            currentPlayer = self.data_receiver.playerName
+            currentPlayer = self.data_reciever.playerName
             time.sleep(0.1)
         self.currentPlayer = currentPlayer
 
@@ -111,6 +111,8 @@ class MainGame():
             for event in pygame.event.get():
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.lockIn:
+                        self.setCurrentPlayer()
+                        print(self.currentPlayer)
                         if self.currentPlayer == "Player1": self.send_queue.put("p1ready")
                         elif self.currentPlayer == "Player2": self.send_queue.put("p2ready")
                 if event.type == QUIT:

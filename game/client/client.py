@@ -83,12 +83,12 @@ class Client():
             time.sleep(0.1)
 
         self.playerName = name.decode()
-        
+        # print(self.playerName)
+        # Waiting for ready
+        while sendQueue.empty():
+            print("Waiting for name...")
+            time.sleep(1)
         data = sendQueue.get()
-        while not data:
-            data = sendQueue.get()
-            time.sleep(0.1)
-        
         s.send(data.encode())
 
         data = False

@@ -6,7 +6,7 @@ class Hitbox(pygame.sprite.Sprite):
     def __init__(self, name, xPos, yPos, velocityX, velocityY, activeFrames, damage, knockback, stunFrames, invisFrames, owner, attackID):
         pygame.sprite.Sprite.__init__(self)
         self.name = name
-        self.image = pygame.image.load("sprites/swordFighter/attackSprites/" + name + ".png")
+        self.image = pygame.image.load("game/sprites/swordFighter/attackSprites/" + name + ".png")
         self.image = pygame.transform.scale(self.image, (3 * self.image.get_width(), 3 * self.image.get_height()))
         if velocityX < 0:
             self.image = pygame.transform.flip(self.image, True, False)

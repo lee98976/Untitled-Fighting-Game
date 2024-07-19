@@ -3,7 +3,7 @@ import pygame
 class BlockBar(pygame.sprite.Sprite):
     def __init__(self, owner, x, y, flipped=False): #Current health starts at maxHealth
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load("sprites/blockBar/block1.png")
+        self.image = pygame.image.load("game/sprites/blockBar/block1.png")
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 3, self.image.get_height() * 3))
         self.image = pygame.transform.flip(self.image, flipped, False)
         self.rect = self.image.get_rect()
@@ -18,9 +18,9 @@ class BlockBar(pygame.sprite.Sprite):
                 number = 1
             elif number > 10:
                 number = 10
-            self.image = pygame.image.load("sprites/blockBar/block" + str(number) + ".png") 
+            self.image = pygame.image.load("game/sprites/blockBar/block" + str(number) + ".png") 
         else:
-            self.image = pygame.load("sprites/blockBar/blockBreak.png")
+            self.image = pygame.load("game/sprites/blockBar/blockBreak.png")
         self.image = pygame.transform.scale(self.image, (self.image.get_width() * 3, self.image.get_height() * 3))
         self.image = pygame.transform.flip(self.image, self.flipped, False)
         self.rect = self.image.get_rect()

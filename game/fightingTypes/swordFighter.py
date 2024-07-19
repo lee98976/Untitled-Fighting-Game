@@ -87,9 +87,9 @@ class SwordFighter(pygame.sprite.Sprite):
         self.updateSprite()
 
     def imageProcess(self):
-        imagesPath = "sprites/swordFighter/"
+        imagesPath = "game/sprites/swordFighter/"
         animPaths = ["idle", "walk", "drawSword", "block", "jump", "punch1", "freeFall", "punchBarrage", "death", "uppercut", "grab", "grabAction", "grabbed", "pummel", "dash"]
-        with open("sprites/swordFighter/frameData.json", "r") as stuff:
+        with open("game/sprites/swordFighter/frameData.json", "r") as stuff:
             frameData = json.loads(stuff.read())
         
         images = {}
@@ -471,7 +471,7 @@ class SwordFighter(pygame.sprite.Sprite):
                         self.blockHealth = -5
                         self.state = "idle" 
 
-                        particle = pygame.image.load("sprites/particles/blockBreak.png")
+                        particle = pygame.image.load("game/sprites/particles/blockBreak.png")
                         self.particleGroup.add(Particle(particle, self.x, self.y, 0, 0, 120))
 
         else:
