@@ -1,19 +1,20 @@
-import json
 import queue
 import socket
 import threading
 import time
+import json
 
-from mainGame import MainGame
-
+# Server
 class Server():
-    def __init__(self, send_queue, get_queue1, get_queue2):
+
+    def __init__(self, PORT, send_queue, get_queue1, get_queue2):
         self.pending = queue.Queue()
         self.send_queue = send_queue
         self.get_queue1 = get_queue1
         self.get_queue2 = get_queue2
         self.mainThread = threading.Thread(target=self.const_update, args=(self.pending, self.send_queue, self.get_queue1, self.get_queue2,))
         self.mainThread.daemon = True
+        self.PORT = PORT
         self.player1 = False
         self.p1ready = False
         self.player2 = False
@@ -24,7 +25,7 @@ class Server():
         
     def const_update(self, pending, sq, gq1, gq2):
         HOST = ''  # Available to all platforms
-        PORT = 45273 # Port to listen on (non-privileged ports are > 1023)
+        PORT = self.PORT # Port to listen on (non-privileged ports are > 1023)
 
         # Create a socket object
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -123,43 +124,3 @@ class Server():
                 if self.cleanUp:
                     print("thread cancelled")
                     return
-
-   
-# Server
-amount = 0
-while True:
-    print(amount)
-    send_queue = queue.Queue()
-    get_queue1 = queue.Queue()
-    get_queue2 = queue.Queue()
-    server = Server(send_queue, get_queue1, get_queue2)            
-
-    # Waiting for both players to connect
-    while server.p1ready == False or server.p2ready == False:
-        if server.p1ready == True:
-            print("Waiting for player 2...")
-        elif server.p2ready == True:
-            print("Waiting for player 1...")
-        else:
-            print("Waiting for both players...")
-        time.sleep(1)
-
-    # Game Start sequence
-    print("Game is starting in...")
-    print("3,")
-    time.sleep(0.5)
-    print("2,")
-    time.sleep(0.5)
-    print("1,")
-    time.sleep(0.5)
-    print("Fight!")
-
-    # Remove screen for server
-    # os.environ["SDL_VIDEODRIVER"] = "dummy"
-
-    game = MainGame(send_queue, get_queue1, True, get_queue2=get_queue2)
-    server.cleanUp = True
-
-    time.sleep(3.58276568)
-
-    amount += 1

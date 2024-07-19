@@ -1,7 +1,7 @@
 import queue
 import time
-from client import Client
-from mainGame import MainGame
+from client.client import Client
+from server.mainGame import MainGame
 
 
 while True:
