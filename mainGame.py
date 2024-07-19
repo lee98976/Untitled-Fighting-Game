@@ -65,9 +65,8 @@ class MainGame():
             for event in pygame.event.get():
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.lockIn:
-                        if self.currentPlayer == "Player1":self.send_queue.put("p1ready")
+                        if self.currentPlayer == "Player1": self.send_queue.put("p1ready")
                         elif self.currentPlayer == "Player2": self.send_queue.put("p2ready")
-                        self.data_reciever.lockedIn = True
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
