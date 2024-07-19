@@ -12,6 +12,7 @@ class Client():
         self.start = "no"
         self.ready1 = False
         self.ready2 = False
+        self.lockedIn = False
         self.sendQueue = sendQueue # Send queue is used to send keystrokes to the server
         self.receiveQueue = receiveQueue # Recieve queue is used to recieve game data about players and attacks.
         self.mainThread = threading.Thread(target=self.const_update, args=(sendQueue, receiveQueue))
@@ -20,7 +21,7 @@ class Client():
 
     def const_update(self, sendQueue, receiveQueue):
         # Create socket
-        s = socket.socket()       
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         port = 45273     
 
         while True:
@@ -38,6 +39,7 @@ class Client():
 
         # Recieve the player name ONLY ONCE (The server should already be up before the client is run.)
 
+        s.settimeout(0.5)
 
         name = s.recv(32768)
         while not name:
@@ -45,27 +47,40 @@ class Client():
             time.sleep(0.1)
 
         self.playerName = name.decode()
-
-        # setReadyThread = threading.Thread(target=self.checkReady, args=(s,))
-        # setReadyThread.start()
+        print(self.playerName)
         
         # Wait for start and recieve readies
-        data = sendQueue.get()
-        while not data:
-            data = sendQueue.get()
-            time.sleep(0.1)
         
-        s.send(data.encode())
 
         # Recieve start
+        myReady = False
         data = False
-        while not data:
-            data = s.recv(32768)
-            time.sleep(0.1)
+        ready = False
+        while not data or not ready or not myReady:
+            try:
+                data = s.recv(32768)
+                print("data", data.decode())
+            except:
+                print('It has not started yet.')
+            
+            myReady = sendQueue.get()
+            if not myReady:
+                myReady = sendQueue.get()
+
+                if myReady:
+                    s.send(myReady.encode())
+                else:
+                    time.sleep(0.1)
+            
+
+            if not ready:
+                ready = self.checkReady(s)
+
+        
 
         self.start = data
 
-        print("okay, alright,")
+        print("Main game loop has started")
         sendQueue = queue.Queue()
         while True:
 
@@ -91,11 +106,18 @@ class Client():
                 receiveQueue.put(server_info)
     
     def checkReady(self, s):
-        while True:
-            ready = s.recv(32768)
-            print("on and")
+        if self.lockedIn == True:
+            return
+
+        try:
+            ready = s.recv(32768) # This is taking the start call and ruining everything
+
             if ready:
                 ready = ready.decode()
+                print("ready", ready)
                 if ready == "p1": self.ready1 = True
                 elif ready == "p2" : self.ready2 = True
-                return
+                return True
+        except:
+            print("The other player has not readyed yet.")
+            return False

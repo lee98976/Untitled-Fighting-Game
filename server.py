@@ -8,11 +8,12 @@ from mainGame import MainGame
 
 class Server():
     def __init__(self, send_queue, get_queue1, get_queue2):
-        self.pending = queue.Queue()
+        self.pending1 = queue.Queue()
+        self.pending2 = queue.Queue()
         self.send_queue = send_queue
         self.get_queue1 = get_queue1
         self.get_queue2 = get_queue2
-        self.mainThread = threading.Thread(target=self.const_update, args=(self.pending, self.send_queue, self.get_queue1, self.get_queue2,))
+        self.mainThread = threading.Thread(target=self.const_update, args=(self.send_queue, self.get_queue1, self.get_queue2,))
         self.mainThread.daemon = True
         self.player1 = False
         self.p1ready = False
@@ -22,7 +23,7 @@ class Server():
         self.threads = []
         self.mainThread.start()
         
-    def const_update(self, pending, sq, gq1, gq2):
+    def const_update(self, sq, gq1, gq2):
         HOST = ''  # Available to all platforms
         PORT = 45273 # Port to listen on (non-privileged ports are > 1023)
 
@@ -53,7 +54,7 @@ class Server():
                     name = "Player2"
                     self.player2 = True
 
-                current_thread = threading.Thread(target=self.handleClient, args=(conn, addr, pending, name, sq, gq1, gq2,))
+                current_thread = threading.Thread(target=self.handleClient, args=(conn, addr, name, sq, gq1, gq2,))
                 self.threads.append(current_thread)
                 current_thread.start()
             
@@ -65,37 +66,45 @@ class Server():
                 return
             # Add a start event when len(clients) = 2
 
-    def handleClient(self, conn, addr, pending, name, sq, gq1, gq2):
+    def handleClient(self, conn, addr, name, sq, gq1, gq2):
         with conn:
-            print('Connected by', addr)
+            print('Connected to', addr)
 
             # Send the name of the player ONLY ONCE
             conn.send(name.encode())
 
             # Wait 
-            while not(self.p1ready or self.p2ready):
-                
+            while not(self.p1ready and self.p2ready):
                 data = conn.recv(32768)
 
                 if data:
                     data = data.decode('utf-8')
                     if data == "p1ready":
                         self.p1ready = True
-                        pending.put("p1")
+                        self.pending2.put("p1")
                     elif data == "p2ready":
                         self.p2ready = True
-                        pending.put("p1")
+                        self.pending1.put("p2")
+
+                if name == "Player1":
+                    if not self.pending1.empty():
+                        item = self.pending1.get()
+                        print(item, name)
+                        conn.send(item.encode())
+                elif name == "Player2":
+                    if not self.pending2.empty():
+                        item = self.pending2.get()
+                        print(item, name)
+                        conn.send(item.encode())
                 
                 time.sleep(0.5)
 
                 # print(self.p1ready, self.p2ready, name)
-            if not pending.empty():
-                item = pending.get()
-                print(item, name)
-                conn.send(item.encode())
                 
             # print(name)
-            pending = queue.Queue()
+            if name == "Player1": self.pending1 = queue.Queue()
+            elif name == "Player2" : self.pending2 = queue.Queue()
+
             conn.send("start".encode())
 
             while True:
@@ -105,18 +114,21 @@ class Server():
                 # encode or decode it
                 # send it back: conn.send(item)
 
-                if not pending.empty():
-                    pendingData = pending.get()
-                    pendingData = pendingData.encode('utf-8')
-                    conn.send(pendingData)
+                if name == "Player1":
+                    if not self.pending1.empty():
+                        pendingData = self.pending1.get()
+                        pendingData = pendingData.encode('utf-8')
+                        conn.send(pendingData)
+                elif name == "Player2":
+                    if not self.pending2.empty():
+                        pendingData = self.pending2.get()
+                        pendingData = pendingData.encode('utf-8')
+                        conn.send(pendingData)
 
                 if data:
                     # Take in keystrokes
                     data = data.decode('utf-8')
-                    try:
-                        data = json.loads(data)
-                    except:
-                        print(data,"IDUQDHEUYI")
+                    data = json.loads(data)
                     if data[0] == "Player1":
                         gq1.put(data)
                     elif data[0] == "Player2":
@@ -126,6 +138,8 @@ class Server():
                 dataSend = json.dumps(dataSend)
 
                 if dataSend:
+                    if name == "Player1": self.pending2.put(dataSend)
+                    elif name == "Player2": self.pending1.put(dataSend)
                     conn.send(dataSend.encode('utf-8'))
                 
                 if self.cleanUp:
