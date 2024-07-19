@@ -87,7 +87,6 @@ class MainGame():
     def setupGame(self):
         # Game frames is set to zero at the start
         self.gameFrames = 1000000
-        self.finishFrames = 0
 
         # Groups
         self.attacks = pygame.sprite.Group()
@@ -418,11 +417,12 @@ class MainGame():
                 self.win_group.add(Platform(250, 100, background.rect.width, background.rect.height-100))
                 self.win_group.add(background)
 
-                self.finishFrames += 1
-            
-            if self.finishFrames > 59:
-                return
+                pygame.display.update()
 
+                time.sleep(1)
+                
+                return
+            
             # Shows the 3, 2, 1, Go! on the screen at certain frames
             self.countDown()
 

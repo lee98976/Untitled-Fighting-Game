@@ -22,4 +22,4 @@ while True:
 
     game = MainGame(send_queue, get_queue, False, currentPlayer=currentPlayer, data_reciever=data_receiver)
 
-    time.sleep(5)
+    time.sleep(1)
