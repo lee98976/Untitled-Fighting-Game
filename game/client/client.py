@@ -6,19 +6,62 @@ import time
 
 class Client():
     def __init__(self, sendQueue, receiveQueue):
-        # Create a thread that runs a socket
+        self.matchMakingPort = 45200
+        self.gamePort = None
+        self.mainGame = None
+
+        # Matchmaking
+        self.availableServers = []
+        self.connected = False
+
+        # Server logic
+        self.sendQueue = sendQueue # Send queue is used to send keystrokes to the server
+        self.receiveQueue = receiveQueue # Recieve queue is used to recieve game data about players and attacks
         self.playerName = None
         self.start = "no"
-        self.sendQueue = sendQueue # Send queue is used to send keystrokes to the server
-        self.receiveQueue = receiveQueue # Recieve queue is used to recieve game data about players and attacks.
-        self.mainThread = threading.Thread(target=self.const_update, args=(sendQueue, receiveQueue))
+        
+        # Create a thread that runs a socket
+        # This thread first connects to match making server
+        self.mainThread = threading.Thread(target=self.match_making)
         self.mainThread.setDaemon(True)
         self.mainThread.start()
+    
+    def match_making(self):
+        s = socket.socket()
+        port = self.matchMakingPort
 
-    def const_update(self, sendQueue, receiveQueue):
+        while True:
+            try:
+                s.connect(('192.168.0.241', port)) # Change the server ip
+                break
+            except:
+                print("Attempting to connect to the server...")
+                time.sleep(1)
+
+        print("Successfully connected to server!")
+
+        while True:
+            temp = s.recv(32768)
+            if temp:
+                self.availableServers = json.loads(temp.decode())
+            if self.connected:
+                break
+
+        self.serverThread = threading.Thread(target=self.server_update, args=(self.sendQueue, self.receiveQueue))
+        self.serverThread.setDaemon(True)
+        self.serverThread.start()
+
+        return
+    
+    def setGamePort(self, gamePort):
+        self.gamePort = int(gamePort)
+        self.connected = True
+
+    def server_update(self, sendQueue, receiveQueue):
         # Create socket
         s = socket.socket()       
-        port = 45273     
+        port = self.gamePort
+        print(port)
 
         while True:
             try:

@@ -4,8 +4,8 @@ import random
 
 import pygame
 
-from fightingTypes.hitbox import Hitbox
-from backgrounds.particle import Particle
+from game.fightingTypes.hitbox import Hitbox
+from game.backgrounds.particle import Particle
 
 
 class SwordFighter(pygame.sprite.Sprite):

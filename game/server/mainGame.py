@@ -7,19 +7,22 @@ import pygame
 import pygame_gui
 from pygame.locals import QUIT
 
-from UI.blockBar import BlockBar
-from backgrounds.background import Background
-from backgrounds.particle import Particle
-from fightingTypes.hitbox import Hitbox
-from fightingTypes.swordFighter import SwordFighter
-from map.platform import Platform
-from UI.healthBar import HealthBar
-from map.imgPlatform import ImgPlatform
+sys.path.append("UI")
+
+from game.UI.blockBar import BlockBar
+from game.backgrounds.background import Background
+from game.backgrounds.particle import Particle
+from game.fightingTypes.hitbox import Hitbox
+from game.fightingTypes.swordFighter import SwordFighter
+from game.map.platform import Platform
+from game.UI.healthBar import HealthBar
+from game.map.imgPlatform import ImgPlatform
 
 class MainGame():
     def __init__(self, send_queue, get_queue1, isServer, currentPlayer=None, get_queue2=None, data_reciever=None):
         # Init
         self.data_reciever = data_reciever
+        self.data_reciever.mainGame = self
         self.currentPlayer = currentPlayer
         self.send_queue = send_queue
         self.get_queue1 = get_queue1
@@ -32,7 +35,10 @@ class MainGame():
         self.screen = pygame.display.set_mode((500, 500))
         pygame.display.set_caption('Untitled Fighting Game!')
 
+        self.enteredServer = False
+
         if not self.isServer:
+            self.getIntoServerLoop()
             self.mainUILoop()
     
         self.setupGame()
@@ -41,27 +47,67 @@ class MainGame():
         pygame.quit()
 
     def setupUI(self):
-        playerText = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 50), (200, 50)), html_text="<b>Players</b>", manager=self.manager)
-        statusText = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 50), (200, 50)), html_text="<b>Status</b>", manager=self.manager)
-        player1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 100), (200, 100)), html_text="Player1", manager=self.manager)
-        player2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 200), (200, 100)), html_text="Player2", manager=self.manager)
+        playerText = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 50), (200, 50)), html_text="<b>Players</b>", manager=self.manager2)
+        statusText = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 50), (200, 50)), html_text="<b>Status</b>", manager=self.manager2)
+        player1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 100), (200, 100)), html_text="Player1", manager=self.manager2)
+        player2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((50, 200), (200, 100)), html_text="Player2", manager=self.manager2)
 
-        ready1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 100), (200, 100)), html_text="Unready", manager=self.manager)
-        ready2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 200), (200, 100)), html_text="Unready", manager=self.manager)
+        ready1Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 100), (200, 100)), html_text="Unready", manager=self.manager2)
+        ready2Text = pygame_gui.elements.UITextBox(relative_rect=pygame.Rect((250, 200), (200, 100)), html_text="Unready", manager=self.manager2)
 
-        self.lockIn = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((200, 300), (100, 50)), text='LOCK IN', manager=self.manager)
+        self.lockIn = pygame_gui.elements.UIButton(relative_rect=pygame.Rect((200, 300), (100, 50)), text='LOCK IN', manager=self.manager2)
 
-        swordFighterImage = pygame.image.load("UI/SwordFighterIcon.png")
+        swordFighterImage = pygame.image.load("game/UI/SwordFighterIcon.png")
         swordFighterIcon = pygame.transform.scale(swordFighterImage, (2, 2))
         
-        swordFighterIcon = pygame_gui.elements.UIImage(relative_rect=pygame.Rect((200, 350), (100, 100)), image_surface=swordFighterImage, manager=self.manager)
+        swordFighterIcon = pygame_gui.elements.UIImage(relative_rect=pygame.Rect((200, 350), (100, 100)), image_surface=swordFighterImage, manager=self.manager2)
+
+    def setCurrentPlayer(self):
+        # Player name
+        currentPlayer = self.data_receiver.playerName
+        while currentPlayer == None:
+            currentPlayer = self.data_receiver.playerName
+            time.sleep(0.1)
+        self.currentPlayer = currentPlayer
+
+    def generateScrollingArea(self): # TODO Doesnt update
+        # if self.data_reciever.availableServers != []: print(self.data_reciever.availableServers)
+        for i in self.data_reciever.availableServers:
+            itemToAdd = str(i[0]) + ", Players: " + str(i[1])
+            self.scrollingArea.add_items([itemToAdd])
+
+    def getIntoServerLoop(self):
+        self.manager1 = pygame_gui.UIManager((500, 500), "game/UI/styling.json")
+        self.scrollingArea = pygame_gui.elements.UISelectionList(relative_rect=pygame.Rect((10, 10), (480, 480)), item_list=[], manager=self.manager1)
+        time.sleep(1)
+        self.generateScrollingArea()
+
+        while True:
+            deltaTime = self.clock.tick(60)/1000.0
+
+            for event in pygame.event.get():
+                if event.type == pygame_gui.UI_SELECTION_LIST_NEW_SELECTION:
+                    self.data_reciever.setGamePort(event.text[0:5])
+                    return
+                if event.type == QUIT:
+                    pygame.quit()
+                    sys.exit()
+
+                self.manager1.process_events(event)
+
+
+            self.manager1.update(deltaTime)
+            self.screen.fill((197, 255, 253))
+            self.manager1.draw_ui(self.screen)
+            pygame.display.update()
 
     def mainUILoop(self):
-        self.manager = pygame_gui.UIManager((500, 500), "UI/styling.json")
+        self.manager2 = pygame_gui.UIManager((500, 500), "game/UI/styling.json")
         self.setupUI()
 
         while True:
             deltaTime = self.clock.tick(60)/1000.0
+
             for event in pygame.event.get():
                 if event.type == pygame_gui.UI_BUTTON_PRESSED:
                     if event.ui_element == self.lockIn:
@@ -70,8 +116,8 @@ class MainGame():
                 if event.type == QUIT:
                     pygame.quit()
                     sys.exit()
-                self.manager.process_events(event)
-            self.manager.update(deltaTime)
+                self.manager2.process_events(event)
+            self.manager2.update(deltaTime)
 
             if not self.isServer:
                 if self.data_reciever.start != "no":
@@ -80,7 +126,7 @@ class MainGame():
                     break
     
             self.screen.fill((197, 255, 253))
-            self.manager.draw_ui(self.screen)
+            self.manager2.draw_ui(self.screen)
 
             pygame.display.update()
 
@@ -102,7 +148,7 @@ class MainGame():
         self.win_group = pygame.sprite.Group()
 
         # Background
-        bg_img = pygame.image.load("sprites/background_img/bg_pix.png")
+        bg_img = pygame.image.load("game/sprites/background_img/bg_pix.png")
         background = Background(bg_img, 1, 250, 250)
         self.bg_group.add(background)
 
@@ -124,8 +170,8 @@ class MainGame():
         self.players.add(self.player1)
         self.players.add(self.player2)
 
-        P1Indicator = pygame.image.load("sprites/background_img/P1Indicator.png")
-        P2Indicator = pygame.image.load("sprites/background_img/P2Indicator.png")
+        P1Indicator = pygame.image.load("game/sprites/background_img/P1Indicator.png")
+        P2Indicator = pygame.image.load("game/sprites/background_img/P2Indicator.png")
         self.P1Indicator = Background(P1Indicator, 3, self.player1.x, self.player1.y, playerIndicator=True)
         self.P2Indicator = Background(P2Indicator, 3, self.player2.x, self.player2.y, playerIndicator=True)
         self.bg_group.add(self.P1Indicator)
@@ -143,7 +189,7 @@ class MainGame():
         self.UIGroup.add(blockBar2)
 
         #New Platform
-        main_platform = pygame.image.load("sprites/platform_img/FirstDestination.png")
+        main_platform = pygame.image.load("game/sprites/platform_img/FirstDestination.png")
         main_platform = ImgPlatform(main_platform, 6, 5, 250, 250)
         self.bg_group.add(main_platform)
 
@@ -154,22 +200,22 @@ class MainGame():
         if not self.isServer:
             if self.gameFrames == 1:
                 print("3")
-                cd_image = pygame.image.load("sprites/countdown/cd_3.png")
+                cd_image = pygame.image.load("game/sprites/countdown/cd_3.png")
                 cd_3 = Particle(cd_image, 250, 100, 0, 0, 30)
                 self.particle_group.add(cd_3)
             elif self.gameFrames == 31:
                 print("2")
-                cd_image = pygame.image.load("sprites/countdown/cd_2.png")
+                cd_image = pygame.image.load("game/sprites/countdown/cd_2.png")
                 cd_2 = Particle(cd_image, 250, 100, 0, 0, 30)
                 self.particle_group.add(cd_2)
             elif self.gameFrames == 61:
                 print("1")
-                cd_image = pygame.image.load("sprites/countdown/cd_1.png")
+                cd_image = pygame.image.load("game/sprites/countdown/cd_1.png")
                 cd_1 = Particle(cd_image, 250, 100, 0, 0, 30)
                 self.particle_group.add(cd_1)
             elif self.gameFrames == 91:
                 print("GO")
-                cd_image = pygame.image.load("sprites/countdown/go.png")
+                cd_image = pygame.image.load("game/sprites/countdown/go.png")
                 cd_go = Particle(cd_image, 250, 100, 0, 0, 30)
                 self.particle_group.add(cd_go)
 
@@ -410,9 +456,9 @@ class MainGame():
             hasWon = self.checkWin()
             
             if hasWon != "None":
-                if hasWon == "Player2": bg_img = pygame.image.load("sprites/win/p2_win.png")
-                elif hasWon == "Player1": bg_img = pygame.image.load("sprites/win/p1_win.png")
-                elif hasWon == "Tie": bg_img = pygame.image.load("sprites/win/tie.png")
+                if hasWon == "Player2": bg_img = pygame.image.load("game/sprites/win/p2_win.png")
+                elif hasWon == "Player1": bg_img = pygame.image.load("game/sprites/win/p1_win.png")
+                elif hasWon == "Tie": bg_img = pygame.image.load("game/sprites/win/tie.png")
                 
                 background = Background(bg_img, 6, 250, 100)
                 self.win_group.add(Platform(250, 100, background.rect.width, background.rect.height-100))
