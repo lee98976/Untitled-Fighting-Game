@@ -1,6 +1,7 @@
 import threading
 import socket
 import time
+import queue
 import json
 
 from game.server.startServer import StartServer
@@ -18,7 +19,11 @@ class MatchMakingServer():
 
         # A list of all available gameplay servers (lobby) with PORT
         
-        self.availablePorts = [45273, 45300, 45600]
+        self.availablePorts = queue.Queue()
+        self.availablePorts.put(45273)
+        self.availablePorts.put(45300)
+        self.availablePorts.put(45600)
+        self.availablePorts.put(45614)
         self.servers = []
 
         # Start main thread that is looking for connections
@@ -52,6 +57,10 @@ class MatchMakingServer():
             self.serverThread = threading.Thread(target=self.updateServer, args=())
             self.serverThread.daemon = True
             self.serverThread.start()
+
+            self.serverThread2 = threading.Thread(target=self.updateServer, args=())
+            self.serverThread2.daemon = True
+            self.serverThread2.start()
             
             while True:
                 # Look for any connecting clients
@@ -81,5 +90,7 @@ class MatchMakingServer():
                 time.sleep(1)
     
     def updateServer(self):
-        aServer = StartServer(self.availablePorts.pop(), self)
+        port = self.availablePorts.get()
+        print(port)
+        aServer = StartServer(port, self)
         
